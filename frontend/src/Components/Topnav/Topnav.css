@@ -1,0 +1,98 @@
+* {
+  margin: 0px;
+  padding: 0px;
+  box-sizing: border-box;
+  font-family: "Inter", sans-serif;
+}
+
+.Topnav {
+  position: absolute;
+  z-index: 9;
+  width: 100%;
+  min-height: 53px;
+  background-color: #ffffff;
+  color: #2c405a;
+  box-shadow: 0 0 20px #e0e0e0;
+
+  /**box-shadow: 0 0 5px #000;
+ border-bottom: 1px solid #242c38;**/
+}
+
+a {
+  cursor: pointer;
+  color: #5d7290;
+  text-decoration: none;
+}
+
+.user-email {
+  position: absolute;
+  right: 6%;
+  top: 15%;
+  font-size: 14px;
+  padding: 5px 0px 10px 0px;
+  font-weight: 600;
+  color: #1d293b;
+}
+
+#username {
+  font-size: 14px;
+  padding: 5px 0px 10px 0px;
+  font-weight: 500;
+  color: #1d293b;
+}
+
+#profile-pic {
+  height: 60px;
+  width: 60px;
+  border-radius: 50px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+.account-button {
+  position: absolute;
+  z-index: 3;
+  top: 5%;
+  right: 3%;
+  cursor: pointer;
+  border-radius: 4px;
+  height: 35px;
+  width: 35px;
+  border-radius: 20px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+#github-icon {
+  position: absolute;
+  z-index: 3;
+  top: 25%;
+  right: 8%;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+#signout-button {
+  width: 75px;
+  height: 35px;
+  margin-top: 0px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  background: #1890ff;
+  border-radius: 4px;
+  border: solid 1px #1890ff;
+  line-height: 27px;
+  cursor: pointer;
+  transition: 0.3s;
+  -webkit-transition: 0.3s;
+  -moz-transition: 0.3s;
+}
+
+#signout-button:hover {
+  background-color: #fc3f3f;
+  border: none;
+}

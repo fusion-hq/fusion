@@ -1,0 +1,26 @@
+.DashboardCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  justify-content: center;
+  margin-top: 10px;
+}
+.more-button {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  border-radius: 100px;
+  width: 25px;
+  height: 25px;
+  background-color: var(--background-color-tertiary);
+  transition: background-color 200ms ease-in;
+}
+
+.dashboard-card-container-grid {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: 42vw 42vw;
+  grid-template-rows: 45vh 45vh;
+  column-gap: 10px;
+  row-gap: 10px;
+}

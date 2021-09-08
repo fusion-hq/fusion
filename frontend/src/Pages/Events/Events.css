@@ -1,0 +1,103 @@
+* {
+  margin: 0px;
+  padding: 0px;
+  box-sizing: border-box;
+  font-family: "Inter", sans-serif;
+}
+
+.Events {
+  min-height: 100vh;
+  background-color: #ffffff;
+}
+
+/* main page that holds side nav and page content */
+.Events .main-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: #eff3f6;
+}
+
+/* current page specific data container*/
+.Events .content-container {
+  width: 100%;
+  height: 100vh;
+  background-color: var(--background-color-primary);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  overflow-y: auto;
+  overflow-y: scroll !important;
+}
+
+/* Actual data goes here*/
+.Events .content {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 5vh;
+  margin-bottom: 10px;
+}
+
+.Events .content .header {
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: left;
+  margin-bottom: 10px;
+}
+
+.Events .header h1 {
+  font-size: 1.8rem;
+  margin-bottom: 5px;
+  font-weight: 500;
+  font-family: "TrelloFonts";
+}
+
+.Events .header p {
+  font-size: 1.1rem;
+  font-weight: 400;
+  font-family: "TrelloFonts";
+  font-style: normal;
+  margin-bottom: 50px;
+}
+
+.Events .event-table {
+  width: 90%;
+}
+
+.Events .user-details-section {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.Events .user-details-section .user-details-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: baseline;
+  align-items: flex-start;
+}
+
+.user-detail-row {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-start;
+  margin-top: 0px;
+  margin-bottom: -15px;
+}
+
+.user-detail-row h1 {
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0px 15px 0px 0px;
+  color: #505050;
+}
+
+.user-detail-row p {
+  font-size: 16px;
+  font-weight: 500;
+}

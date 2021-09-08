@@ -1,0 +1,70 @@
+/** Trello Fonts */
+
+@font-face {
+  font-family: "TrelloFonts";
+  src: local("TrelloFonts"),
+    url("./Asset/font/TrelloFonts/Charlie_Text-Thin.woff") format("woff");
+  font-weight: 200;
+}
+
+@font-face {
+  font-family: "TrelloFonts";
+  src: local("TrelloFonts"),
+    url("./Asset/font/TrelloFonts/Charlie_Text-Light.woff") format("woff");
+  font-weight: 300;
+}
+
+@font-face {
+  font-family: "TrelloFonts";
+  src: local("TrelloFonts"),
+    url("./Asset/font/TrelloFonts/Charlie_Text-Regular.woff") format("woff");
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: "TrelloFonts";
+  src: local("TrelloFonts"),
+    url("./Asset/font/TrelloFonts/Charlie_Text-Semibold.woff") format("woff");
+  font-weight: 500;
+}
+
+@font-face {
+  font-family: "TrelloFonts";
+  src: local("TrelloFonts"),
+    url("./Asset/font/TrelloFonts/Charlie_Text-Bold.woff") format("woff");
+  font-weight: 600;
+}
+
+@font-face {
+  font-family: "TrelloFonts";
+  src: local("TrelloFonts"),
+    url("./Asset/font/TrelloFonts/Charlie_Text-Black.woff") format("woff");
+  font-weight: 700;
+}
+
+@font-face {
+  font-family: "TrelloFonts";
+  src: local("TrelloFonts"),
+    url("./Asset/font/TrelloFonts/Charlie_Display-Semibold.woff") format("woff");
+  font-weight: 800;
+}
+@font-face {
+  font-family: "TrelloFonts";
+  src: local("TrelloFonts"),
+    url("./Asset/font/TrelloFonts/Charlie_Display-Black.woff") format("woff");
+  font-weight: 900;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
+}

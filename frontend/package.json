@@ -1,0 +1,54 @@
+{
+  "name": "fusion-app-antd",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@auth0/auth0-react": "^1.1.0",
+    "@craco/craco": "5.5.0",
+    "@testing-library/jest-dom": "^5.12.0",
+    "@testing-library/react": "^11.2.6",
+    "@testing-library/user-event": "^12.8.3",
+    "antd": "^4.15.4",
+    "chart.js": "^3.3.2",
+    "craco-less": "^1.17.1",
+    "cross-env": "^7.0.3",
+    "date-fns": "^2.20.3",
+    "dotenv": "^8.2.0",
+    "moment": "^2.29.1",
+    "react": "^17.0.2",
+    "react-chartjs-2": "^3.0.3",
+    "react-css-theme-switcher": "^0.3.0",
+    "react-dom": "^17.0.2",
+    "react-feather": "^2.0.9",
+    "react-router-dom": "^5.2.0",
+    "react-scripts": "4.0.3",
+    "react-syntax-highlighter": "^15.4.4",
+    "react-toastify": "^7.0.4",
+    "recharts": "^2.0.9",
+    "web-vitals": "^1.1.1"
+  },
+  "scripts": {
+    "start": "cross-env PORT=4040 craco start",
+    "build": "craco build",
+    "test": "craco test",
+    "eject": "craco eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

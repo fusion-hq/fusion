@@ -1,0 +1,145 @@
+* {
+  margin: 0px;
+  padding: 0px;
+  box-sizing: border-box;
+  font-family: "Inter", sans-serif;
+}
+
+.sidebar-container {
+  z-index: 11;
+  width: 90px;
+  min-height: 100vh;
+  background-color: var(--sidenav-bg);
+  /**
+  background-color: #001240;
+  background-color: #191927;
+  background-color: #1d293b;
+  background-color: #152a43;
+
+  box-shadow: 0 0 20px #000;
+  */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: left;
+}
+
+.logo-container {
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+}
+
+#fusion-logo {
+  height: 45px;
+}
+
+#fusion-logo-text {
+  font-weight: 700;
+  font-style: italic;
+  font-size: 26px;
+  color: #ffffff;
+  font-family: "Raleway", sans-serif;
+  margin-left: 8px;
+}
+
+.sidebar-option-container {
+  display: none;
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.nav-link {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 10px;
+  padding-top: 10px;
+  width: 90px;
+  transition: background-color 200ms ease-in;
+}
+
+.nav-link:hover {
+  background-color: #334055;
+}
+
+.router-link {
+  text-decoration: none;
+}
+
+.nav-link h1 {
+  font-size: 15px;
+  text-decoration: none;
+  font-family: "TrelloFonts";
+  margin-top: 2px;
+  font-weight: 500;
+}
+
+Link {
+  text-decoration: none;
+}
+
+.hide-sidenav-button {
+  background-color: transparent;
+  cursor: pointer;
+  border: transparent;
+}
+
+.user {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-left: 0px;
+  margin-bottom: 20px;
+}
+
+#username {
+  font-size: 14px;
+  padding: 5px 0px 10px 0px;
+  font-weight: 500;
+}
+
+#profile-pic {
+  height: 60px;
+  width: 60px;
+  border-radius: 50px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+.user-pic {
+  height: 45px;
+  width: 45px;
+  border-radius: 50px;
+  border: 2px solid #2c3d57;
+}
+
+#signout-button {
+  width: 75px;
+  height: 35px;
+  margin-top: 0px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  background: #1890ff;
+  border-radius: 4px;
+  border: solid 1px #1890ff;
+  line-height: 27px;
+  cursor: pointer;
+  transition: 0.3s;
+  -webkit-transition: 0.3s;
+  -moz-transition: 0.3s;
+}
+
+#signout-button:hover {
+  background-color: #fc3f3f;
+  border: none;
+}

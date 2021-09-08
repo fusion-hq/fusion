@@ -1,0 +1,79 @@
+* {
+  margin: 0px;
+  padding: 0px;
+  box-sizing: border-box;
+  font-family: "TrelloFonts";
+}
+
+.Dashboard {
+  min-height: 100vh;
+  background-color: #ffffff;
+}
+
+/* main page that holds side nav and page content */
+.Dashboard .main-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: #eff3f6;
+}
+
+/* current page specific data container*/
+.Dashboard .content-container {
+  width: 100%;
+  height: 100vh;
+  background: var(--background-color-primary);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  overflow-y: auto;
+  overflow-y: scroll !important;
+}
+
+/* Actual data goes here*/
+.Dashboard .content {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 5vh;
+  margin-bottom: 10px;
+}
+
+.Dashboard .content .header {
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: left;
+  margin-bottom: 10px;
+}
+
+.Dashboard .header h1 {
+  font-size: 1.8rem;
+  margin-bottom: 5px;
+  font-weight: 500;
+  font-family: "TrelloFonts";
+}
+
+.Dashboard .header p {
+  font-size: 1.1rem;
+  font-weight: 400;
+  font-family: "TrelloFonts";
+  font-style: normal;
+  margin-bottom: 50px;
+}
+.Dashboard .dashboard-table {
+  width: 90%;
+}
+
+.Dashboard .dashboard-delete-button {
+  outline: none;
+  border: transparent;
+  background: transparent;
+  color: #d3461b;
+  padding: none;
+  margin: none;
+  cursor: pointer;
+}

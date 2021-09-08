@@ -1,0 +1,18 @@
+.TrendsEditor {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  justify-content: space-between;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.trends-graph-properties-editor-headers {
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--text-color);
+}
+
+/**
+  border: "1px solid #D9D8DC";
+*/

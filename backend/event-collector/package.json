@@ -1,0 +1,19 @@
+{
+  "name": "fusion-pixel-tracker-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "fusion-pixel-tracker-backend.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon fusion-pixel-tracker-backend.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.21.1",
+    "dotenv": "^8.2.0",
+    "moment": "^2.29.1",
+    "url": "^0.11.0",
+    "uuid": "^8.3.2"
+  }
+}

@@ -1,0 +1,40 @@
+# dependencies
+backend/event-collector/node_modules
+backend/query-service/node_modules
+frontend/node_modules
+
+
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# production
+frontend/build
+
+# misc
+.DS_Store
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+
+backend/query-service/.env
+backend/query-service/.DS_Store
+
+frontend/.DS_Store
+frontend/.env
+
+
+
+
+
+
+
