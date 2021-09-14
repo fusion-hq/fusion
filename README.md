@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/fusion-hq/blob/main/doc/fusion-logo.png" alt="fusion-logo" width="240" />
+  <img src="https://raw.githubusercontent.com/fusion-hq/fusion/main/doc/fusion-logo.png" alt="fusion-logo" width="400" />
 
   <p align="center">All-in-one user behaviour analytics and engagement platform.</p>
 </p>
@@ -13,7 +13,7 @@
  <a href="https://fusionhq.co/"><img src="https://img.shields.io/badge/View-Website-blue" alt="Discord"></a>
 </p>
   
-<img src="https://github.com/fusion-hq/blob/main/doc/fusion-dashboard-graphs.png" width="100%" alt="fusion dashboard"/>
+<img src="https://raw.githubusercontent.com/fusion-hq/fusion/main/doc/fusion-dashboard-graphs.png" width="100%" alt="fusion dashboard"/>
 
 Fusion is an open-source lightweight user behaviour analytics and engagement pltaform.
 
@@ -45,7 +45,7 @@ Inspired with all these, we decided to build a lightweight all-in-one solution h
 
 - **Real-time engagement suite** coming soon: Live-chat, in-app/sms push notification, email/micro-surveys.
 
-![Fusion dashboard screenshot](https://github.com/fusion-hq/blob/main/doc/fusion-dashboard-trends.png)
+![Fusion dashboard screenshot](https://raw.githubusercontent.com/fusion-hq/fusion/main/doc/fusion-dashboard-trends.png)
 
 <br /><br />
 
