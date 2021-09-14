@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/fusion-hq/fusion/main/doc/fusion-logo.png" alt="fusion-logo" width="400" />
+  <img src="https://raw.githubusercontent.com/fusion-hq/fusion/main/doc/fusion-logo.png" alt="fusion-logo" width="450" />
 
   <p align="center">All-in-one user behaviour analytics and engagement platform.</p>
 </p>
@@ -21,6 +21,8 @@ Its built upon a simplified low-code mixpanel like analytics engine with built-i
 
 Fusion shows how your users interact with your web based products eg: page-views, button clicks, form submissions etc. But apart from this, Fusion lets you engage with a specific user or group of user who have something in common or performed a particular action, in real-time with live-chat, in-app push notification, email/micro-surveys or set it up to trigger automatically.
 
+<br />
+
 ## ✍️ Story
 
 After getting rejected in Y Combinator-W21 interview and scrapping our previous project we started to work on a simplfied open-source alternative to mixpanel/amplitude for startups as these platforms were bit bloated and we could only find session based simplified analytics alternatives like plausible & simple analytics.
@@ -29,7 +31,7 @@ We quickly realised that our early customers who were also startups did not want
 
 Inspired with all these, we decided to build a lightweight all-in-one solution helping startups understand, engage, convert and retain users from single app.
 
-<br /><br />
+<br />
 
 ## 🚀 Features
 
@@ -47,15 +49,19 @@ Inspired with all these, we decided to build a lightweight all-in-one solution h
 
 ![Fusion dashboard screenshot](https://raw.githubusercontent.com/fusion-hq/fusion/main/doc/fusion-dashboard-trends.png)
 
-<br /><br />
+<br />
 
 ## 📚 Documentation
 
 Coming soon... Please connect with us over discord and we will help you setup fusion.
 
+<br />
+
 ## 🧐 Community? Questions? Support ?
 
 If you need help or just want to hang out, come, say hi on our [Discord](https://discord.gg/VWeZanfhrA) server.
+
+<br />
 
 ## ✨ Contribution
 
