@@ -70,7 +70,7 @@
      axios.get(planURL + `getPlanDetails/${selectedPlan}/`).then((res) => {
        setPlanPrice(res.data.price);
      });
-   }, [selectedPlan, writeKey]);
+   }, [selectedPlan, writeKey, planURL]);
  
    //razorypay code -
    const handlePaymentSuccess = async (response) => {
