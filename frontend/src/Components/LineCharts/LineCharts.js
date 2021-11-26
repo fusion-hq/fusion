@@ -8,7 +8,6 @@ import "./LineCharts.css";
 import { Line } from "react-chartjs-2";
 import moment from "moment";
 import { Empty } from "antd";
-import noDataIcon from "../../Asset/no-data-icon.svg";
 import { useThemeSwitcher } from "react-css-theme-switcher";
 
 function LineCharts({ jsonData }) {

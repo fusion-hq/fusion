@@ -6,52 +6,31 @@
 import React, { useState, useEffect, useContext } from "react";
 import "./Dashboard.css";
 import Sidenav from "../../Components/Sidenav/Sidenav.js";
-import {
-  Form,
-  Input,
-  Table,
-  Button,
-  Space,
-  Modal,
-  Typography,
-  message,
-} from "antd";
+import { Form, Input, Table, Button, Space, Modal } from "antd";
 import { PlusOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import { AccessTokenContext } from "../../Context/AccessTokenContext";
 import { WriteKeyContext } from "../../Context/WriteKeyContext";
 import { SetupWizardContext } from "../../Context/SetupWizardContext";
 import { Link } from "react-router-dom";
-import { Trash, Trash2 } from "react-feather";
+import { Trash2 } from "react-feather";
 import { useAuth0 } from "@auth0/auth0-react";
-import SyntaxHighlighter from "react-syntax-highlighter";
-import { docco, monokai } from "react-syntax-highlighter/dist/esm/styles/hljs";
 import SetupWizard from "../../Components/SetupWizard/SetupWizard";
 
 function Dashboard() {
-  const [accessToken, setAccessToken] = useContext(AccessTokenContext);
-  const [writeKey, setWriteKey] = useContext(WriteKeyContext);
-  const [setupWizardVisible, setSetupWizardVisible] =
-    useContext(SetupWizardContext);
+  const [accessToken,] = useContext(AccessTokenContext);
+  const [writeKey,] = useContext(WriteKeyContext);
+  const [, setSetupWizardVisible] = useContext(SetupWizardContext);
   const serverUrl = process.env.REACT_APP_SERVER_URL;
   const token = accessToken;
   const [dashboards, setDashboards] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [dashboardName, setDashboardName] = useState("");
   const [description, setDescription] = useState("");
-  const [isSetupModalVisble, setIsSetupModalVisble] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const { user } = useAuth0();
   const { email } = user;
   const { confirm } = Modal;
-  const { Paragraph } = Typography;
-
-  var apiServer = "http://localhost:3000";
-
-  var trackingCode = `<script> (function () { var fusionScript = document.createElement("SCRIPT");
-fusionScript.src = "https://cdn.jsdelivr.net/gh/fusion-hq/fusion-tracking-suit-v3/fusion-tracking-library.js";
-fusionScript.type = "text/javascript"; document.getElementsByTagName("HEAD")[0].appendChild(fusionScript);
-document.onreadystatechange = function () { if (document.readyState === "complete") {
-fusion.init("${writeKey}", "${apiServer}", false);}};})();</script>`;
 
   function showDeleteDashboardConfirm(record) {
     confirm({
@@ -90,14 +69,6 @@ fusion.init("${writeKey}", "${apiServer}", false);}};})();</script>`;
 
   const onFinishFailed = (errorInfo) => {
     console.log("Failed:", errorInfo);
-  };
-
-  const handleSetupModalOk = () => {
-    setIsSetupModalVisble(false);
-  };
-
-  const handleSetupModalCancel = () => {
-    setIsSetupModalVisble(false);
   };
 
   const TableColumns = [
@@ -141,6 +112,7 @@ fusion.init("${writeKey}", "${apiServer}", false);}};})();</script>`;
 
   // Fetch possible value for a filter property from DB
   const fetchAllDashboards = async (writeKey) => {
+    setLoading(true);
     try {
       const response = await fetch(
         `${serverUrl}/dashboards?writeKey=${writeKey}`,
@@ -152,8 +124,9 @@ fusion.init("${writeKey}", "${apiServer}", false);}};})();</script>`;
       );
       const dashboardList = await response.json();
       setDashboards(dashboardList);
+      setLoading(false);
       //console.log(dashboardList);
-      if (dashboardList == "") {
+      if (dashboardList === "") {
         setSetupWizardVisible(true);
       }
     } catch (error) {
@@ -202,7 +175,7 @@ fusion.init("${writeKey}", "${apiServer}", false);}};})();</script>`;
       );
       const dashboardList = await response.json();
       setDashboards(dashboardList);
-      if (dashboardList == "") {
+      if (dashboardList === "") {
         setSetupWizardVisible(true);
       }
     } catch (error) {
@@ -239,6 +212,8 @@ fusion.init("${writeKey}", "${apiServer}", false);}};})();</script>`;
 
   useEffect(() => {
     fetchAllDashboards(writeKey);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -262,8 +237,10 @@ fusion.init("${writeKey}", "${apiServer}", false);}};})();</script>`;
               </Button>
             </div>
             {/** Dashboard list table */}
+
             <Table
               className="dashboard-table"
+              loading={loading}
               dataSource={dashboards}
               columns={TableColumns}
               size="small"

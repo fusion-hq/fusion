@@ -14,22 +14,27 @@ import {
   Dropdown,
   Button,
   message,
-  Divider,
 } from "antd";
+import {
+  ReloadOutlined,
+  LeftOutlined,
+  RightOutlined,
+} from "@ant-design/icons";
 import { AccessTokenContext } from "../../Context/AccessTokenContext";
 import { WriteKeyContext } from "../../Context/WriteKeyContext";
 import Tags from "../../Components/TrendsEditor/Tags";
 import moment from "moment";
 import SyntaxHighlighter from "react-syntax-highlighter";
-import { docco, monokai } from "react-syntax-highlighter/dist/esm/styles/hljs";
+import { monokai } from "react-syntax-highlighter/dist/esm/styles/hljs";
 
 function Events() {
-  const [eventCount, setEventCount] = useState(0);
-  const [accessToken, setAccessToken] = useContext(AccessTokenContext);
-  const [writeKey, setWriteKey] = useContext(WriteKeyContext);
+  const [, setEventCount] = useState(0);
+  const [accessToken, ] = useContext(AccessTokenContext);
+  const [writeKey, ] = useContext(WriteKeyContext);
   const token = accessToken;
   const serverUrl = process.env.REACT_APP_SERVER_URL;
   const [eventList, setEventList] = useState();
+  const [loading, setLoading] = useState(true);
 
   const [selectedEvent, setSelectedEvent] = useState("All events");
   const [availableEventNameForSelect, setAvailableEventNameForSelect] =
@@ -40,7 +45,7 @@ function Events() {
     useState(false);
 
   // Used by search input
-  const [eventPropertyKeywordList, setEventPropertyKeywordList] = useState([]);
+  const [, setEventPropertyKeywordList] = useState([]);
 
   // used by WHERE property popup state auto visibility
   const [filterTags, setFilterTags] = useState([]);
@@ -59,6 +64,10 @@ function Events() {
 
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+
+  //pagination
+  const [page, setPage] = useState(1);
+  const limit = 10;
 
   //componnets from antd
   const { Option } = Select;
@@ -242,10 +251,6 @@ function Events() {
           dropdownStyle={{ minWidth: "150px" }}
           style={{ minWidth: "50px", margin: "10px 0px 10px 0px" }}
           onChange={handleFilterValueSelect}
-          filterOption={(input, option) =>
-            option.props.children.toLowerCase().indexOf(input.toLowerCase()) >=
-            0
-          }
         >
           {availablePropertyValueForSelect}
         </Select>
@@ -299,35 +304,68 @@ function Events() {
     selectedDateTimeRange,
     startDate,
     endDate,
-    writeKey
+    writeKey,
+    page,
+    limit
   ) => {
+    setLoading(true);
     try {
       const token = accessToken;
       let filterString = JSON.stringify(filterTags);
 
-      const response = await fetch(
-        `${serverUrl}/events?event=${selectedEvent}&filters=${filterString}&dateTime=${selectedDateTimeRange}&startDate=${startDate}&endDate=${endDate}&writeKey=${writeKey}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      if (selectedDateTimeRange !== "All time") {
+        if (startDate.length > 0 && endDate.length > 0) {
+          const response = await fetch(
+            `${serverUrl}/events?event=${selectedEvent}&filters=${filterString}&dateTime=${selectedDateTimeRange}&startDate=${startDate}&endDate=${endDate}&writeKey=${writeKey}&page=${page}&limit=${limit}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
 
-      const events = await response.json();
-      let eventList = [];
-      for (let id in events) {
-        events[id].timestamp = moment(events[id].timestamp).fromNow();
-        // pretty print the properties object after stringifying
-        // events[id].properties = JSON.stringify(
-        //   events[id].properties,
-        //   null,
-        //   "\t"
-        // );
-        eventList.push(events[id]);
+          const events = await response.json();
+          let eventList = [];
+          for (let id in events) {
+            events[id].timestamp = moment(events[id].timestamp).fromNow();
+            // pretty print the properties object after stringifying
+            // events[id].properties = JSON.stringify(
+            //   events[id].properties,
+            //   null,
+            //   "\t"
+            // );
+            eventList.push(events[id]);
+          }
+          setEventList(eventList);
+          setEventCount(eventList.length);
+        }
+      } else {
+        const response = await fetch(
+          `${serverUrl}/events?event=${selectedEvent}&filters=${filterString}&dateTime=${selectedDateTimeRange}&startDate=${startDate}&endDate=${endDate}&writeKey=${writeKey}&page=${page}&limit=${limit}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const events = await response.json();
+        let eventList = [];
+        for (let id in events) {
+          events[id].timestamp = moment(events[id].timestamp).fromNow();
+          // pretty print the properties object after stringifying
+          // events[id].properties = JSON.stringify(
+          //   events[id].properties,
+          //   null,
+          //   "\t"
+          // );
+          eventList.push(events[id]);
+        }
+        setEventList(eventList);
+        setEventCount(eventList.length);
       }
-      setEventList(eventList);
-      setEventCount(eventList.length);
+
+      setLoading(false);
     } catch (error) {
       console.log(error.message);
     }
@@ -430,8 +468,11 @@ function Events() {
       selectedDateTimeRange,
       startDate,
       endDate,
-      writeKey
+      writeKey,
+      page,
+      limit
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     selectedEvent,
     filterTags,
@@ -439,20 +480,30 @@ function Events() {
     startDate,
     endDate,
     writeKey,
+    page,
+    limit,
   ]);
 
   useEffect(() => {
+    setPage(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterTags, selectedEvent]);
+
+  useEffect(() => {
     getAllEventsName();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     getAllEventProperty();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // fetch available filter value for a filter property passed,
   // at new render or if new filter property is selected
   useEffect(() => {
     fetchFilterPropertyValue(selectedFilterProperty);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFilterProperty]);
 
   function onChange(pagination, filters, sorter, extra) {
@@ -508,15 +559,15 @@ function Events() {
                   >
                     <Option value="Today">Today</Option>
                     <Option value="Yesterday">Yesterday</Option>
-                    <Option value="Last 24 hours">Last 24 hours</Option>
-                    <Option value="Last 48 hours">Last 48 hours</Option>
-                    <Option value="Last 7 days">Last 7 days</Option>
-                    <Option value="Last 14 days">Last 14 days</Option>
+                    {/* <Option value="Last 24 hours">Last 24 hours</Option>
+              <Option value="Last 48 hours">Last 48 hours</Option>
+              <Option value="Last 7 days">Last 7 days</Option>
+              <Option value="Last 14 days">Last 14 days</Option> */}
                     <Option value="Last 30 days">Last 30 days</Option>
                     <Option value="Last 90 days">Last 90 days</Option>
-                    <Option value="This Month">This Month</Option>
-                    <Option value="Previous Month">Previous Month</Option>
-                    <Option value="Year to date">Year to date</Option>
+                    {/* <Option value="This Month">This Month</Option>
+              <Option value="Previous Month">Previous Month</Option>
+              <Option value="Year to date">Year to date</Option> */}
                     <Option value="All time">All time</Option>
                     <Option value="Date range">Date range</Option>
                   </Select>
@@ -536,6 +587,48 @@ function Events() {
                     Add Filter
                   </Button>
                 </Dropdown>
+
+                <Button
+                  type="primary"
+                  icon={<ReloadOutlined />}
+                  style={{ margin: "5px 0px 10px 15px" }}
+                  onClick={() => {
+                    getEvents(
+                      selectedEvent,
+                      filterTags,
+                      selectedDateTimeRange,
+                      startDate,
+                      endDate,
+                      writeKey,
+                      page,
+                      limit
+                    );
+                  }}
+                >
+                  Refresh
+                </Button>
+                <Button
+                  type="primary"
+                  icon={<LeftOutlined />}
+                  style={{ margin: "5px 0px 10px 15px" }}
+                  onClick={() => {
+                    if (page > 1) {
+                      setPage((page) => page - 1);
+                    }
+                  }}
+                >
+                  Previous
+                </Button>
+                <Button
+                  type="primary"
+                  icon={<RightOutlined />}
+                  style={{ margin: "5px 0px 10px 15px" }}
+                  onClick={() => {
+                    setPage((page) => page + 1);
+                  }}
+                >
+                  Next
+                </Button>
               </div>
 
               {filterTags.map((filterTag, index) => (
@@ -550,8 +643,9 @@ function Events() {
               className="event-table"
               columns={columns}
               dataSource={eventList}
+              loading={loading}
               onChange={onChange}
-              pagination={true}
+              pagination={false}
               size="small"
               rowKey={(record) => {
                 return record.event_id;

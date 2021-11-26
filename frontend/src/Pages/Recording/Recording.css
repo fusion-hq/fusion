@@ -2,23 +2,23 @@
   margin: 0px;
   padding: 0px;
   box-sizing: border-box;
-  font-family: "Inter", sans-serif;
+  font-family: "TrelloFonts";
 }
 
-.Testing {
+.Recording {
   min-height: 100vh;
   background-color: #ffffff;
 }
 
 /* main page that holds side nav and page content */
-.Testing .main-container {
+.Recording .main-container {
   display: flex;
   min-height: 100vh;
   background-color: #eff3f6;
 }
 
 /* current page specific data container*/
-.Testing .content-container {
+.Recording .content-container {
   width: 100%;
   height: 100vh;
   background-color: var(--background-color-primary);
@@ -30,37 +30,59 @@
   overflow-y: scroll !important;
 }
 
-/* Actual data goes here*/
-.Testing .content {
+.Recording .content {
+  width: 90%;
   display: flex;
-  width: 100%;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
   margin-top: 5vh;
   margin-bottom: 10px;
 }
 
-.Testing .content .header {
-  width: 90%;
+.Recording .event-section {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  justify-content: left;
-  margin-bottom: 10px;
+  justify-content: center;
+  align-items: left;
+  width: 70%;
 }
 
-.Testing .header h1 {
+.Recording .header {
+  margin-right: auto;
+  margin-bottom: 30px;
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.Recording .header h1 {
   font-size: 1.8rem;
   margin-bottom: 5px;
   font-weight: 500;
   font-family: "TrelloFonts";
 }
 
-.Testing .header p {
+.Recording .header p {
   font-size: 1.1rem;
   font-weight: 400;
   font-family: "TrelloFonts";
   font-style: normal;
-  margin-bottom: 50px;
+  color: var(--description-color-secondry);
+}
+
+.Recording .controllers {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin-right: auto;
+  margin-bottom: 20px;
+}
+
+.Recording .event-table {
+  width: 100%;
+}
+
+.Recording .property-table {
+  width: 10px;
 }

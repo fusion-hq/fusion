@@ -3,53 +3,53 @@
  * Show basic welcome message and some UI
  */
 
-import React, { useState, useEffect, useContext } from "react";
-import "./User.css";
+import React, { useState, useContext, useEffect } from "react";
+import "./Session.css";
+import { useHistory } from "react-router-dom";
 import Sidenav from "../../Components/Sidenav/Sidenav.js";
 import {
-  Divider,
-  Card,
-  Table,
-  Button,
   Select,
+  DatePicker,
+  Table,
   Menu,
   Dropdown,
-  DatePicker
+  Button,
+  message,
 } from "antd";
+import { ReloadOutlined, LeftOutlined, RightOutlined } from "@ant-design/icons";
 import { AccessTokenContext } from "../../Context/AccessTokenContext";
 import { WriteKeyContext } from "../../Context/WriteKeyContext";
-import { useParams } from "react-router-dom";
-import moment from "moment";
 import Tags from "../../Components/TrendsEditor/Tags";
+import moment from "moment";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { monokai } from "react-syntax-highlighter/dist/esm/styles/hljs";
 
-function User() {
-  const { uuid, userId, deviceId } = useParams();
-  const [accessToken, ] = useContext(AccessTokenContext);
-  const [writeKey, ] = useContext(WriteKeyContext);
-  const serverUrl = process.env.REACT_APP_SERVER_URL;
+function Session() {
+  const history = useHistory();
+
+  const [accessToken] = useContext(AccessTokenContext);
+  const [writeKey] = useContext(WriteKeyContext);
   const token = accessToken;
-
-  const [userProfile, setUserProfile] = useState({});
-  const [eventList, setEventList] = useState();
-  const [userIds, setUserIds] = useState([]);
-  const [userProfileProperties, setUserProfileProperties] = useState([]);
-
-  const [selectedEvent, setSelectedEvent] = useState("All events");
-  const [availableEventNameForSelect, setAvailableEventNameForSelect] =
-    useState([]);
+  const serverUrl = process.env.REACT_APP_SERVER_URL;
+  const [userList, setUserList] = useState([]);
   const [whereFilterDropdownVisible, setWhereFilterDropdownVisible] =
     useState(false);
   const [DateRangeFilterDropdownVisible, setDateRangeFilterDropdownVisible] =
     useState(false);
+
+  const [loading, setLoading] = useState(true);
+
+  //pagination
+  const [page, setPage] = useState(1);
+  const limit = 10;
 
   // used by WHERE property popup state auto visibility
   const [filterTags, setFilterTags] = useState([]);
   const [selectedFilterProperty, setSelectedFilterProperty] = useState("");
   const [selectedFilterOperator, setSelectedFilterOperator] = useState("");
   const [selectedFilterValue, setSelectedFilterValue] = useState("");
-  const [availableEventPropertyForSelect, setAvailableEventPropertyForSelect] =
+
+  const [availableUserPropertyForSelect, setAvailableUserPropertyForSelect] =
     useState([]);
   const [availablePropertyValueForSelect, setAvailablePropertyValueForSelect] =
     useState([]);
@@ -62,65 +62,9 @@ function User() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  //loading state
-  const [loading, setLoading] = useState(true);
-
   //componnets from antd
   const { Option } = Select;
   const { RangePicker } = DatePicker;
-
-  // event_id column is used as unique key for each row for row expander
-  const eventTableColumns = [
-    {
-      title: "Event",
-      dataIndex: "event",
-    },
-    {
-      title: "Page",
-      dataIndex: "page",
-    },
-    {
-      title: "Source",
-      dataIndex: "source",
-    },
-    {
-      title: "Time",
-      dataIndex: "timestamp",
-    },
-  ];
-
-  // used in table for show all user properties
-  const profilePropertyTableColumn = [
-    {
-      title: "Property",
-      dataIndex: "property",
-      key: "property",
-      width: "50%",
-      ellipsis: true,
-    },
-    {
-      title: "Value",
-      dataIndex: "value",
-      key: "value",
-      width: "50%",
-      ellipsis: true,
-    },
-  ];
-
-  function onChange(pagination, filters, sorter, extra) {
-    //console.log("params", pagination, filters, sorter, extra);
-  }
-
-  // Selector handlers used for SHOW section
-  function handleEventNameSelect(value) {
-    if (value === undefined || value === "") {
-      setSelectedEvent("All events");
-    } else {
-      setSelectedEvent(value);
-    }
-
-    //console.log(value);
-  }
 
   // handles change in date range picker selector
   function handleDatePickerValueChange(date, dateString) {
@@ -149,7 +93,7 @@ function User() {
   function handleFilterPropertySelect(value) {
     if (value !== undefined) {
       setSelectedFilterProperty(value);
-      fetchFilterPropertyValue();
+      getAllUserPropertyValue();
       //console.log(value);
     } else setSelectedFilterProperty("");
   }
@@ -227,7 +171,7 @@ function User() {
       ]);
       setWhereFilterDropdownVisible(false);
     } else {
-      console.log("Select all fields !");
+      message.warning("Select all fields !");
     }
   };
 
@@ -245,7 +189,9 @@ function User() {
       }}
     >
       <span>
-        <p style={{ marginBottom: "2px" }}>Select filter property and value</p>
+        <p style={{ marginBottom: "2px" }}>
+          Only users with below condition will be shown
+        </p>
         <Select
           allowClear
           showSearch
@@ -259,7 +205,7 @@ function User() {
             0
           }
         >
-          {availableEventPropertyForSelect}
+          {availableUserPropertyForSelect}
         </Select>
         <Select
           allowClear
@@ -287,6 +233,10 @@ function User() {
           dropdownStyle={{ minWidth: "150px" }}
           style={{ minWidth: "50px", margin: "10px 0px 10px 0px" }}
           onChange={handleFilterValueSelect}
+          filterOption={(input, option) =>
+            option.props.children.toLowerCase().indexOf(input.toLowerCase()) >=
+            0
+          }
         >
           {availablePropertyValueForSelect}
         </Select>
@@ -314,86 +264,56 @@ function User() {
     </Menu>
   );
 
-  // Fetch users profile data
-  const getUserProfile = async (uuid, userId, deviceId, writeKey) => {
-    try {
-      const token = accessToken;
-
-      if (writeKey.length > 0) {
-        const response = await fetch(
-          `${serverUrl}/user-personal-data?uuid=${uuid}&userId=${userId}&deviceId=${deviceId}&writeKey=${writeKey}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        const userProfileData = await response.json();
-        setUserProfile(userProfileData);
-        setUserIds(userProfileData.user_ids);
-
-        //format userProfileData.properties object to array to render antd Table
-        let profilePropertiesDataForTable = [],
-          propertiesObject = userProfileData.properties;
-        var keyCount = 1;
-        for (const property in propertiesObject) {
-          let tableRowData = {
-            property: `${property}`,
-            value: `${propertiesObject[property]}`,
-            key: `${keyCount}`,
-          };
-          profilePropertiesDataForTable.push(tableRowData);
-          keyCount++;
-        }
-        setUserProfileProperties(profilePropertiesDataForTable);
-      }
-    } catch (error) {
-      console.error(error.message);
+  const columns = [
+    {
+      title: "User",
+      dataIndex: "email",
+    },
+    {
+      title: "User ID",
+      dataIndex: "user_id",
+    },
+    {
+      title: "Recorded at",
+      dataIndex: "timestamp",
     }
-  };
+  ];
 
-  const getUserPerformedEvents = async (
-    selectedEvent,
-    userIds,
+  // Fetch all Session details from DB
+  const getAllSession = async (
     filterTags,
     selectedDateTimeRange,
     startDate,
     endDate,
-    writeKey
+    writeKey,
+    page,
+    limit
   ) => {
     try {
       setLoading(true);
-
-      const token = accessToken;
       let filterString = JSON.stringify(filterTags);
-      let userIdListString = JSON.stringify(userIds);
-
-      if (userIds.length > 0) {
-        const response = await fetch(
-          `${serverUrl}/user-performed-events?event=${selectedEvent}&userIds=${userIdListString}&filters=${filterString}&dateTime=${selectedDateTimeRange}&startDate=${startDate}&endDate=${endDate}&writeKey=${writeKey}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        const events = await response.json();
-        let eventList = [];
-        for (let id in events) {
-          events[id].timestamp = moment(events[id].timestamp).format("lll");
-          // pretty print the properties object after stringifying
-          // events[id].properties = JSON.stringify(
-          //   events[id].properties,
-          //   null,
-          //   "\t"
-          // );
-          eventList.push(events[id]);
+      const response = await fetch(
+        `${serverUrl}/allRecordingData?filters=${filterString}&dateTime=${selectedDateTimeRange}&startDate=${startDate}&endDate=${endDate}&writeKey=${writeKey}&page=${page}&limit=${limit}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-        setEventList(eventList);
-      }
+      );
+      const users = await response.json();
+      //console.log(users);
 
+      users.map((user) => {
+        user.timestamp = moment(user.timestamp).fromNow();
+        if (user.user_id) {
+          user.email = `Visitor${user.user_id.substr(user.user_id.length - 5)}`;
+        } else {
+          user.email = "";
+        }
+        return 0;
+      });
+
+      setUserList(users);
       setLoading(false);
     } catch (error) {
       console.log(error.message);
@@ -401,10 +321,10 @@ function User() {
   };
 
   // Fetch all avaliable event type from DB using APIs
-  const getAllEventProperty = async () => {
+  const getAllUserProperty = async () => {
     try {
       const response = await fetch(
-        `${serverUrl}/events-properties?writeKey=${writeKey}`,
+        `${serverUrl}/user-properties?writeKey=${writeKey}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -412,31 +332,31 @@ function User() {
         }
       );
 
-      const eventsProperties = await response.json();
+      const usersProperties = await response.json();
       //Array of only event name for keyword searching
       // const eventPropertyKeywordList = eventsProperties.map(
       //   (eventPropertyName) => eventPropertyName.properties
       // );
       // setEventPropertyKeywordList(eventPropertyKeywordList);
 
-      const AvailableEventPropertyForSelect = eventsProperties.map(
-        (eventProperty) => (
-          <Option value={eventProperty.properties}>
-            {eventProperty.properties}
+      const AvailableUserPropertyForSelect = usersProperties.map(
+        (userProperty) => (
+          <Option value={userProperty.properties}>
+            {userProperty.properties}
           </Option>
         )
       );
-      setAvailableEventPropertyForSelect(AvailableEventPropertyForSelect);
+      setAvailableUserPropertyForSelect(AvailableUserPropertyForSelect);
     } catch (error) {
       console.log(error.message);
     }
   };
 
   // Fetch possible value for a filter property from DB
-  const fetchFilterPropertyValue = async (property) => {
+  const getAllUserPropertyValue = async (property) => {
     try {
       const response = await fetch(
-        `${serverUrl}/filter-property-value?propertyName=${property}&writeKey=${writeKey}`,
+        `${serverUrl}/user-property-value?propertyName=${property}&writeKey=${writeKey}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -444,6 +364,7 @@ function User() {
         }
       );
       const propertyValuesName = await response.json();
+
       //console.log(propertyValuesName);
       const AvailablePropertyValueForSelect = propertyValuesName.map(
         (propertyValueName) => (
@@ -459,113 +380,67 @@ function User() {
     }
   };
 
-  // Fetch all avaliable event type from DB using APIs
-  const getAllEventsName = async () => {
-    try {
-      const response = await fetch(
-        `${serverUrl}/events-name?writeKey=${writeKey}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      const eventsName = await response.json();
-      /** Older manual method
-        const AvailableEventNameForSelect = [];
-        for (let id in eventsName) {
-          AvailableEventNameForSelect.push(
-            <Option key={eventsName[id].event}>{eventsName[id].event}</Option>
-          );
-        }
-        setAvailableEventNameForSelect(AvailableEventNameForSelect);
-        */
-      const AvailableEventNameForSelect = eventsName.map((eventName) => (
-        <Option value={eventName.event}>{eventName.event}</Option>
-      ));
-      setAvailableEventNameForSelect(AvailableEventNameForSelect);
-    } catch (error) {
-      console.log(error.message);
-    }
-  };
-
+  //fetch available user porperties
   useEffect(() => {
-    getUserProfile(uuid, userId, deviceId, writeKey);
+    getAllUserProperty();
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [uuid, userId, deviceId, writeKey]);
-
-  useEffect(() => {
-    getAllEventsName();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    getAllEventProperty();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // fetch available filter value for a filter property passed,
   // at new render or if new filter property is selected
   useEffect(() => {
-    fetchFilterPropertyValue(selectedFilterProperty);
+    getAllUserPropertyValue(selectedFilterProperty);
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFilterProperty]);
 
   useEffect(() => {
-    getUserPerformedEvents(
-      selectedEvent,
-      userIds,
+    getAllSession(
       filterTags,
       selectedDateTimeRange,
       startDate,
       endDate,
-      writeKey
+      writeKey,
+      page,
+      limit
     );
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    selectedEvent,
-    userIds,
     filterTags,
     selectedDateTimeRange,
     startDate,
     endDate,
     writeKey,
+    page,
+    limit,
   ]);
 
+  function onChange(pagination, filters, sorter, extra) {
+    //console.log("params", pagination, filters, sorter, extra);
+  }
+
   return (
-    <div className="User" id="User">
+    <div className="Session">
       <div className="main-container">
-        <Sidenav subPath={uuid + "/" + userId + "/" + deviceId} />
+        <Sidenav />
         <div className="content-container">
           <div className="content">
-            <div className="event-section">
-              <div className="header">
-                <h1>User Profile</h1>
-                <p>Personal info and events perfomed by this user</p>
+            <div className="header">
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  width: "100%",
+                }}
+              >
+                <div>
+                  <h1>Session</h1>
+                  <p>Session recordings of user screens</p>
+                </div>
               </div>
               <div className="controllers">
-                <Select
-                  allowClear
-                  value={selectedEvent}
-                  showSearch
-                  bordered={true}
-                  placeholder="Select Event ..."
-                  dropdownStyle={{ minWidth: "200px" }}
-                  style={{
-                    width: "200px",
-                  }}
-                  onChange={handleEventNameSelect}
-                  filterOption={(input, option) =>
-                    option.props.children
-                      .toLowerCase()
-                      .indexOf(input.toLowerCase()) >= 0
-                  }
-                >
-                  {availableEventNameForSelect}
-                </Select>
-
                 <Dropdown
                   overlay={customDateRangeMenu}
                   visible={DateRangeFilterDropdownVisible}
@@ -579,9 +454,7 @@ function User() {
                       minWidth: "200px",
                     }}
                     style={{
-                      marginRight: "auto",
                       fontWeight: "600",
-                      margin: "0px 0px 0px 15px",
                     }}
                     onChange={handleDateTimeRangeSelectChange}
                     listHeight={420}
@@ -611,100 +484,93 @@ function User() {
                     onClick={() => {
                       setWhereFilterDropdownVisible(true);
                     }}
-                    style={{
-                      margin: "0px 0px 0px 15px",
-                      width: "110px",
-                    }}
+                    style={{ margin: "0px 0px 0px 15px" }}
                   >
                     Add Filter
                   </Button>
                 </Dropdown>
+                <Button
+                  type="primary"
+                  icon={<ReloadOutlined />}
+                  style={{ margin: "5px 0px 10px 15px" }}
+                  onClick={() => {
+                    getAllSession(
+                      filterTags,
+                      selectedDateTimeRange,
+                      startDate,
+                      endDate,
+                      writeKey,
+                      page,
+                      limit
+                    );
+                  }}
+                >
+                  Refresh
+                </Button>
+                <Button
+                  type="primary"
+                  icon={<LeftOutlined />}
+                  style={{ margin: "5px 0px 10px 15px" }}
+                  onClick={() => {
+                    if (page > 1) {
+                      setPage((page) => page - 1);
+                    }
+                  }}
+                >
+                  Previous
+                </Button>
+                <Button
+                  type="primary"
+                  icon={<RightOutlined />}
+                  style={{ margin: "5px 0px 10px 15px" }}
+                  onClick={() => {
+                    setPage((page) => page + 1);
+                  }}
+                >
+                  Next
+                </Button>
               </div>
 
-              <div style={{ marginRight: "auto" }}>
-                {filterTags.map((filterTag, index) => (
-                  <Tags
-                    deleteFilterTag={deleteFilterTag}
-                    filterTag={filterTag}
-                    key={index}
-                  />
-                ))}
-              </div>
-
-              <Table
-                className="event-table"
-                columns={eventTableColumns}
-                dataSource={eventList}
-                onChange={onChange}
-                pagination={true}
-                loading={loading}
-                size="small"
-                rowKey={(record) => {
-                  return record.event_id;
-                }}
-                expandable={{
-                  expandedRowRender: (record) => (
-                    <>
-                      <SyntaxHighlighter language="json" style={monokai}>
-                        {JSON.stringify(record.properties, null, "\t")}
-                      </SyntaxHighlighter>
-                    </>
-                  ),
-                }}
-              />
+              {filterTags.map((filterTag, index) => (
+                <Tags
+                  deleteFilterTag={deleteFilterTag}
+                  filterTag={filterTag}
+                  key={index}
+                />
+              ))}
             </div>
-
-            <Card
-              className="trends-editor-card"
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "left",
-                alignItems: "left",
-                width: "34%",
-                minHeight: "90vh",
-                margin: "0% 0% 1% 0%",
-                boxShadow: "1px 1px 15px 8px rgba(230, 230, 230, 0)",
+            <Table
+              className="user-table"
+              columns={columns}
+              dataSource={userList}
+              loading={loading}
+              onChange={onChange}
+              pagination={false}
+              rowKey={(record) => {
+                return record.sessionid;
               }}
-            >
-              {userProfile !== "" ? (
-                <div>
-                  <h3>Name: {userProfile.name}</h3>
-                  <h3>Email: {userProfile.email}</h3>
-                  <h3>Company: {userProfile.company}</h3>
-                  <h3>Phone: {userProfile.phone}</h3>
-                  <h3>Plan: {userProfile.plan}</h3>
-                  <h3>Team: {userProfile.team}</h3>
-
-                  <h3>
-                    First Seen: {moment(userProfile.created_at).format("lll")}
-                  </h3>
-                </div>
-              ) : (
-                <h1>Profile Unavailable</h1>
-              )}
-              <Divider
-                style={{
-                  marginBottom: "30px",
-                  marginTop: "30px",
-                  height: "1px",
-                }}
-              />
-
-              <Table
-                style={{ width: "100%" }}
-                className="property-table"
-                columns={profilePropertyTableColumn}
-                dataSource={userProfileProperties}
-                onChange={onChange}
-                size="small"
-                pagination={false}
-              />
-            </Card>
+              size="small"
+              onRow={(record, rowIndex) => {
+                return {
+                  onClick: (event) => {
+                    history.push(`/recording/${record.sessionid}`);
+                  }, // click row
+                };
+              }}
+              expandable={{
+                expandedRowRender: (record) => (
+                  <>
+                    <SyntaxHighlighter language="json" style={monokai}>
+                      {JSON.stringify(record.properties, null, "\t")}
+                    </SyntaxHighlighter>
+                  </>
+                ),
+              }}
+            />
           </div>
         </div>
       </div>
     </div>
   );
 }
-export default User;
+export default Session;

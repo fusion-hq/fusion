@@ -6,34 +6,30 @@
 import React, { useState, useEffect, useContext } from "react";
 import "./SavedDashboard.css";
 import Sidenav from "../../Components/Sidenav/Sidenav.js";
-import { Button, notification } from "antd";
+import { Button, Spin } from "antd";
 import {
   ReloadOutlined,
   FundProjectionScreenOutlined,
 } from "@ant-design/icons";
 import { AccessTokenContext } from "../../Context/AccessTokenContext";
 import { WriteKeyContext } from "../../Context/WriteKeyContext";
-import { Link, useParams } from "react-router-dom";
-import { Trash, Trash2 } from "react-feather";
-import { useAuth0 } from "@auth0/auth0-react";
+import { useParams } from "react-router-dom";
 import DashboardCard from "../../Components/DashboardCard/DashboardCard";
 
 function SavedDashboard() {
   const { dashboardTitle } = useParams();
 
-  const [accessToken, setAccessToken] = useContext(AccessTokenContext);
-  const [writeKey, setWriteKey] = useContext(WriteKeyContext);
+  const [accessToken, ] = useContext(AccessTokenContext);
+  const [writeKey, ] = useContext(WriteKeyContext);
   const serverUrl = process.env.REACT_APP_SERVER_URL;
   const token = accessToken;
   const [metrics, setMetrics] = useState([]);
-  const [refresh, setRefresh] = useState(false);
   const [sidenavVisible, setSidenavVisible] = useState("flex");
-
-  const { user } = useAuth0();
-  const { email } = user;
+  const [loading, setLoading] = useState(false);
 
   // Fetch saved metrics for current dashboard
   const fetchSavedMetrics = async (dashboardTitle, writeKey) => {
+    setLoading(true);
     try {
       const response = await fetch(
         `${serverUrl}/metrics?dashboard=${dashboardTitle}&writeKey=${writeKey}`,
@@ -45,6 +41,7 @@ function SavedDashboard() {
       );
       const savedMetrics = await response.json();
       setMetrics(savedMetrics);
+      setLoading(false);
     } catch (error) {
       console.log(error.message);
     }
@@ -66,6 +63,7 @@ function SavedDashboard() {
 
   useEffect(() => {
     fetchSavedMetrics(dashboardTitle, writeKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -114,11 +112,15 @@ function SavedDashboard() {
             </div>
 
             <div className="dashboard-card-container-grid">
-              {metrics
-                ? metrics.map((metrics, index) => (
-                    <DashboardCard data={metrics} key={index} />
-                  ))
-                : ""}
+              {loading ? (
+                <Spin size="large" style={{ margin: "25vh 0 0 40vw" }} />
+              ) : metrics ? (
+                metrics.map((metrics, index) => (
+                  <DashboardCard data={metrics} key={index} />
+                ))
+              ) : (
+                ""
+              )}
             </div>
           </div>
         </div>

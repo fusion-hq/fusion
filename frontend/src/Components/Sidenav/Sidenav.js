@@ -8,21 +8,19 @@ import React, { useState, useEffect } from "react";
 import "./Sidenav.css";
 import { Link, useLocation, useHistory } from "react-router-dom";
 import { useThemeSwitcher } from "react-css-theme-switcher";
-import {
-  MousePointer,
-  Tool,
-  Flag,
-  Users,
-  BarChart2,
-  TrendingUp,
-  Day,
-  Night,
-  MessageCircle,
-  MessageSquare,
-} from "react-feather";
 import Logo from "../../Asset/fusion-logo-blue-white.svg";
 import { Menu, Dropdown, Divider, Button, Switch } from "antd";
 import { useAuth0 } from "@auth0/auth0-react";
+import {
+  ChartBarIcon,
+  TrendingUpIcon,
+  UserGroupIcon,
+  CursorClickIcon,
+  // ChatAltIcon,
+  AdjustmentsIcon,
+  ChatIcon,
+  PlayIcon,
+} from "@heroicons/react/solid";
 
 function Sidenav({ subPath, visible }) {
   let location = useLocation();
@@ -31,8 +29,7 @@ function Sidenav({ subPath, visible }) {
   const { logout, user } = useAuth0();
   const { picture, email } = user;
 
-  const { switcher, themes, currentTheme, status } = useThemeSwitcher();
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const { switcher, themes, currentTheme } = useThemeSwitcher();
 
   const centerStyle = {
     position: "relative",
@@ -117,6 +114,7 @@ function Sidenav({ subPath, visible }) {
   const [icon4Color, setIcon4Color] = useState("#93AAC4");
   const [icon5Color, setIcon5Color] = useState("#93AAC4");
   const [icon6Color, setIcon6Color] = useState("#93AAC4");
+  const [icon7Color, setIcon7Color] = useState("#93AAC4");
 
   // sideanve navlink background color state
   const [icon1BgColor, setIcon1CBgolor] = useState("none");
@@ -125,8 +123,7 @@ function Sidenav({ subPath, visible }) {
   const [icon4BgColor, setIcon4CBgolor] = useState("none");
   const [icon5BgColor, setIcon5CBgolor] = useState("none");
   const [icon6BgColor, setIcon6CBgolor] = useState("none");
-
-  const [sideNavVisible, setSideNavDisplay] = useState("flex");
+  const [icon7BgColor, setIcon7CBgolor] = useState("none");
 
   // Executes each time new page loads,
   //finds current route and based on that sets iconColor variable value
@@ -166,6 +163,16 @@ function Sidenav({ subPath, visible }) {
         setIcon2CBgolor("#1890FF");
         break;
 
+      case `/cohort`:
+        setIcon2Color("#d1e9ff");
+        setIcon2CBgolor("#1890FF");
+
+        break;
+      case `/email`:
+        setIcon2Color("#d1e9ff");
+        setIcon2CBgolor("#1890FF");
+
+        break;
       case "/events":
         setIcon3Color("#d1e9ff");
         setIcon3CBgolor("#1890FF");
@@ -176,7 +183,12 @@ function Sidenav({ subPath, visible }) {
         setIcon4CBgolor("#1890FF");
 
         break;
-      case "/action":
+      case `/action`:
+        setIcon5Color("#d1e9ff");
+        setIcon5CBgolor("#1890FF");
+
+        break;
+      case `/action/${subPath}`:
         setIcon5Color("#d1e9ff");
         setIcon5CBgolor("#1890FF");
 
@@ -186,6 +198,23 @@ function Sidenav({ subPath, visible }) {
         setIcon6CBgolor("#1890FF");
 
         break;
+
+      case "/session":
+        setIcon7Color("#d1e9ff");
+        setIcon7CBgolor("#1890FF");
+
+        break;
+
+      case `/session`:
+        setIcon7Color("#d1e9ff");
+        setIcon7CBgolor("#1890FF");
+        break;
+
+      case `/recording/${subPath}`:
+        setIcon7Color("#d1e9ff");
+        setIcon7CBgolor("#1890FF");
+        break;
+
       default:
         setIcon1Color("#5D7290");
         setIcon2Color("#5D7290");
@@ -193,6 +222,7 @@ function Sidenav({ subPath, visible }) {
         setIcon4Color("#5D7290");
         setIcon5Color("#5D7290");
         setIcon6Color("#5D7290");
+        setIcon7Color("#5D7290");
 
         setIcon1CBgolor("#none");
         setIcon2CBgolor("#none");
@@ -200,9 +230,10 @@ function Sidenav({ subPath, visible }) {
         setIcon4CBgolor("#none");
         setIcon5CBgolor("#none");
         setIcon6CBgolor("#none");
-
+        setIcon7CBgolor("#none");
         break;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
 
   return (
@@ -217,7 +248,9 @@ function Sidenav({ subPath, visible }) {
             className="nav-link"
             style={{ backgroundColor: `${icon1BgColor}` }}
           >
-            <BarChart2 size="25px" color={icon1Color} />
+            {/* <BarChart2 size="25px" color={icon1Color} /> */}
+            <ChartBarIcon style={{ height: "25px" }} color={icon1Color} />
+
             <h1 style={{ color: `${icon1Color}` }}>Dashboard</h1>
           </div>
         </Link>
@@ -227,7 +260,9 @@ function Sidenav({ subPath, visible }) {
             className="nav-link"
             style={{ backgroundColor: `${icon4BgColor}` }}
           >
-            <TrendingUp size="25px" color={icon4Color} />
+            {/* <TrendingUp size="25px" color={icon4Color} /> */}
+            <TrendingUpIcon style={{ height: "25px" }} color={icon4Color} />
+
             <h1 style={{ color: `${icon4Color}` }}>Insights</h1>
           </div>
         </Link>
@@ -237,7 +272,9 @@ function Sidenav({ subPath, visible }) {
             className="nav-link"
             style={{ backgroundColor: `${icon2BgColor}` }}
           >
-            <Users size="25px" color={icon2Color} />
+            {/* <Users size="25px" color={icon2Color} /> */}
+            <UserGroupIcon style={{ height: "25px" }} color={icon2Color} />
+
             <h1 style={{ color: `${icon2Color}` }}>Users</h1>
           </div>
         </Link>
@@ -247,27 +284,41 @@ function Sidenav({ subPath, visible }) {
             className="nav-link"
             style={{ backgroundColor: `${icon3BgColor}` }}
           >
-            <MousePointer size="25px" color={icon3Color} />
+            {/* <MousePointer size="25px" color={icon3Color} /> */}
+            <CursorClickIcon style={{ height: "25px" }} color={icon3Color} />
             <h1 style={{ color: `${icon3Color}` }}>Events</h1>
+          </div>
+        </Link>
+
+        <Link to="/session" className="router-link">
+          <div
+            className="nav-link"
+            style={{ backgroundColor: `${icon7BgColor}` }}
+          >
+            {/* <Tool size="25px" color={icon6Color} /> */}
+            <PlayIcon style={{ height: "25px" }} color={icon7Color} />
+            <h1 style={{ color: `${icon7Color}` }}>Session</h1>
           </div>
         </Link>
 
         <Link to="/action" className="router-link">
           <div
             className="nav-link"
-            style={{ backgroundColor: `${icon5BgColor}` }}
+            style={{ backgroundColor: `${icon5BgColor},`, display: "none" }}
           >
-            <MessageCircle size="25px" color={icon5Color} />
-            <h1 style={{ color: `${icon5Color}` }}>Action</h1>
+            {/* <MousePointer size="25px" color={icon3Color} /> */}
+            <ChatIcon style={{ height: "25px" }} color={icon5Color} />
+            <h1 style={{ color: `${icon5Color}` }}>Messaging</h1>
           </div>
         </Link>
-
         <Link to="/settings" className="router-link">
           <div
             className="nav-link"
             style={{ backgroundColor: `${icon6BgColor}` }}
           >
-            <Tool size="25px" color={icon6Color} />
+            {/* <Tool size="25px" color={icon6Color} /> */}
+            <AdjustmentsIcon style={{ height: "25px" }} color={icon6Color} />
+
             <h1 style={{ color: `${icon6Color}` }}>Settings</h1>
           </div>
         </Link>

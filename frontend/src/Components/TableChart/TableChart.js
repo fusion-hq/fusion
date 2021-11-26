@@ -18,17 +18,6 @@ function TableChart({ jsonData, groupBy }) {
 
   var groupByProperty = groupBy;
 
-  const dataSource = [
-    {
-      browser: "Safari",
-      count: "25",
-    },
-    {
-      browser: "Chrome",
-      count: "30",
-    },
-  ];
-
   const columns = [
     {
       title: groupByProperty,
@@ -39,8 +28,6 @@ function TableChart({ jsonData, groupBy }) {
       dataIndex: "count",
     },
   ];
-
-  // when data available execute rest code
 
   /**
  with groupby filter
@@ -73,6 +60,8 @@ function TableChart({ jsonData, groupBy }) {
   // Map all approx_timestamp key values to create new Time key with value as readable date time
   jsonData.map((e) => {
     e.Time = moment(e.approx_timestamp).format("lll");
+
+    return 0;
   });
 
   return (

@@ -4,8 +4,8 @@
 
 import React, { useState, useEffect, useContext } from "react";
 import "./DashboardCard.css";
-import { Card, Menu, Dropdown, notification } from "antd";
-import { MoreOutlined, InfoCircleOutlined } from "@ant-design/icons";
+import { Card, Menu, Dropdown, notification, Spin } from "antd";
+import { MoreOutlined } from "@ant-design/icons";
 import { AccessTokenContext } from "../../Context/AccessTokenContext";
 import { WriteKeyContext } from "../../Context/WriteKeyContext";
 import LineCharts from "../LineCharts/LineCharts";
@@ -15,30 +15,27 @@ import PieChart from "../PieChart/PieChart";
 import CountChart from "../CountChart/CountChart";
 
 export default function DashboardCard({ data, key }) {
-  const [accessToken, setAccessToken] = useContext(AccessTokenContext);
-  const [writeKey, setWriteKey] = useContext(WriteKeyContext);
-  const [cardOptionDropdownVisible, setCardOptionDropdownVisible] =
-    useState(false);
+  const [accessToken, ] = useContext(AccessTokenContext);
+  const [writeKey, ] = useContext(WriteKeyContext);
+
   const serverUrl = process.env.REACT_APP_SERVER_URL;
   const token = accessToken;
   // Real fetched data for graph
   const [graphData, setGraphData] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const {
     aggregator,
     chart_type,
-    created_at,
     dashboard,
     date_time,
     end_date,
     event,
     filters,
     group_by,
-    metrics_id,
     metrics_name,
     start_date,
     timescale,
-    write_key,
   } = data;
 
   const cardOption = (
@@ -74,6 +71,7 @@ export default function DashboardCard({ data, key }) {
     writeKey
   ) => {
     try {
+      setLoading(true);
       const response = await fetch(
         `${serverUrl}/trends?event=${event}&aggregator=${aggregator}&filters=${filters}&groupBy=${group_by}&timescale=${timescale}&dateTime=${date_time}&startDate=${start_date}&endDate=${end_date}&writeKey=${writeKey}`,
         {
@@ -84,6 +82,7 @@ export default function DashboardCard({ data, key }) {
       );
       const trendsData = await response.json();
       setGraphData(trendsData);
+      setLoading(false);
     } catch (error) {
       console.log(error.message);
     }
@@ -119,16 +118,29 @@ export default function DashboardCard({ data, key }) {
       end_date,
       writeKey
     );
-  }, []);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    event,
+    aggregator,
+    filters,
+    group_by,
+    timescale,
+    date_time,
+    start_date,
+    end_date,
+    writeKey
+  ]);
 
   return (
     <div className="DashboardCard">
       <Card
         style={{
           minWidth: "42vw",
-          minHeight: "45vh",
+          height: "45vh",
           margin: "1% 0% 1% 0%",
           boxShadow: "1px 1px 15px 8px rgba(230, 230, 230, 0)",
+          overflowY: "scroll",
         }}
       >
         <span
@@ -159,7 +171,10 @@ export default function DashboardCard({ data, key }) {
             </button>
           </Dropdown>
         </span>
-        {group_by === "" ? (
+
+        {loading ? (
+          <Spin size="large" style={{ margin: "20% 0 0 50%" }} />
+        ) : group_by === "" ? (
           chart_type === "Linear" ? (
             <LineCharts jsonData={graphData} />
           ) : chart_type === "Table" ? (

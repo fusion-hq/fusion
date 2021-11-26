@@ -18,7 +18,7 @@
 }
 
 /* current page specific data container*/
-.Insights .content-container {
+.Insights .main-container .content-container {
   width: 100%;
   height: 100vh;
   /**
@@ -26,7 +26,7 @@
   background-color: #f9fafc;
   background-color: #f6f7f9;
   */
-  background-color: var(--background-color-tertiary);
+  background-color: var(--background-color-primary);
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -36,7 +36,7 @@
 }
 
 /* Actual data goes here*/
-.Insights .content {
+.Insights .content-container .content {
   display: flex;
   width: 90%;
   flex-direction: column;
@@ -58,4 +58,5 @@
   font-weight: 400;
   font-family: "TrelloFonts";
   font-style: normal;
+  color: var(--description-color-secondry);
 }

@@ -14,19 +14,19 @@ import {
   Space,
 } from "antd";
 import { LinkOutlined } from "@ant-design/icons";
-import { Trash, Trash2 } from "react-feather";
+import { Trash2 } from "react-feather";
 import { WriteKeyContext } from "../../Context/WriteKeyContext";
 import { AccessTokenContext } from "../../Context/AccessTokenContext";
 import { SetupWizardContext } from "../../Context/SetupWizardContext";
 
 import SyntaxHighlighter from "react-syntax-highlighter";
-import { docco, monokai } from "react-syntax-highlighter/dist/esm/styles/hljs";
+import { monokai } from "react-syntax-highlighter/dist/esm/styles/hljs";
 
 export default function SetupWizard() {
-  const [accessToken, setAccessToken] = useContext(AccessTokenContext);
+  const [accessToken, ] = useContext(AccessTokenContext);
   const token = accessToken;
   const serverUrl = process.env.REACT_APP_SERVER_URL;
-  const [writeKey, setWriteKey] = useContext(WriteKeyContext);
+  const [writeKey, ] = useContext(WriteKeyContext);
   const [setupWizardVisible, setSetupWizardVisible] =
     useContext(SetupWizardContext);
   const [current, setCurrent] = useState(0);
@@ -36,10 +36,10 @@ export default function SetupWizard() {
   const { Step } = Steps;
   const { Search } = Input;
 
-  var apiServer = "http://localhost:3000";
-  var trackingCode = `<script> (function () { var fusionScript = document.createElement("SCRIPT");
-fusionScript.src = "https://cdn.jsdelivr.net/gh/fusion-hq/fusion-js/dev-static/fusion.js";
-fusionScript.type = "text/javascript"; document.getElementsByTagName("HEAD")[0].appendChild(fusionScript);
+  var apiServer = "https://service.fusionhq.co";
+
+  var trackingCode = `<!-- Fusion Analytics Tracking Script--><script> (function () { var fusionScript = document.createElement("SCRIPT");
+fusionScript.src = "https://app.fusionhq.co/array.js"; fusionScript.type = "text/javascript"; document.getElementsByTagName("HEAD")[0].appendChild(fusionScript);
 document.onreadystatechange = function () { if (document.readyState === "complete") {
 fusion.init("${writeKey}", "${apiServer}", false);}};})();</script>`;
 
@@ -70,12 +70,6 @@ fusion.init("${writeKey}", "${apiServer}", false);}};})();</script>`;
     {
       title: "Last",
       content: "Last-content",
-    },
-  ];
-
-  const data = [
-    {
-      website_name: "gofusion.io",
     },
   ];
 
@@ -177,6 +171,7 @@ fusion.init("${writeKey}", "${apiServer}", false);}};})();</script>`;
 
   useEffect(() => {
     getAllowedUrl(writeKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -238,8 +233,11 @@ fusion.init("${writeKey}", "${apiServer}", false);}};})();</script>`;
               }}
             >
               <p>
-                To setup event tracking, copy paste the below code snippet just
-                after head tag of your website.
+                To setup event tracking, paste the below code snippet just
+                before end of head tag on your website. It will only capture
+                pageview & pageleave by default. To collect button/link click,
+                input/form submission, change the word false to true in the
+                below code
               </p>
               <Paragraph
                 copyable={{ text: trackingCode }}
@@ -274,7 +272,10 @@ fusion.init("${writeKey}", "${apiServer}", false);}};})();</script>`;
                 alignItems: "center",
               }}
             >
-              <p>Add project URL</p>
+              <p>
+                Add the URL of your website. Only the websites you add below
+                will be able to send tracking data to your fusion account
+              </p>
               <Search
                 placeholder="Allowed URL"
                 allowClear
@@ -306,9 +307,10 @@ fusion.init("${writeKey}", "${apiServer}", false);}};})();</script>`;
               }}
             >
               <p>
-                Great 🎉 Now you should see events coming on events page. Refer
-                docs to learn how you can use Fusion 🚀 After this step create a
-                dashboard to avoid seeing this popup again !
+                Great 🎉 Now you should see events coming from your webiste on
+                events page. Refer docs to learn more about Fusion 🚀 . After
+                this step go to dashboard page & create a dashboard to avoid
+                seeing this popup again !
               </p>
             </div>
           ) : null}

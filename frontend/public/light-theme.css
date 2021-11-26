@@ -10,10 +10,12 @@
   --background-color-secondry: #faf8fc;
   /** --background-color-secondry: #faf8fc; */
   --background-color-tertiary: #eff3f6;
+  --description-color-secondry: #8d8d8d;
   --sidenav-bg: #1d293b;
   --text-color: #000;
+  --border: #e0e6ed;
 }
- body {
+body {
   font-family: "TrelloFonts";
 }
 
@@ -17100,7 +17102,6 @@ textarea.ant-input {
 }
 .ant-input-search-button {
   height: 42px;
-
 }
 .ant-input-search-button:hover,
 .ant-input-search-button:focus {

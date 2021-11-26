@@ -58,6 +58,7 @@
   font-weight: 500;
   font-family: "TrelloFonts";
   font-style: italic;
+  color: var(--description-color-secondry);
 }
 
 .SavedDashboard .dashboard-table {

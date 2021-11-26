@@ -3,7 +3,6 @@
  */
 
 import React, { useState, useEffect, useContext } from "react";
-import { BrowserRouter as Router, Link, useHistory } from "react-router-dom";
 import "./TrendsEditor.css";
 import {
   Divider,
@@ -19,6 +18,7 @@ import {
   Form,
   Input,
   notification,
+  Spin,
 } from "antd";
 import { AccessTokenContext } from "../../Context/AccessTokenContext";
 import { WriteKeyContext } from "../../Context/WriteKeyContext";
@@ -32,7 +32,6 @@ import {
   TableOutlined,
   FieldBinaryOutlined,
   InfoCircleOutlined,
-  CheckCircleOutlined,
   CheckOutlined,
 } from "@ant-design/icons";
 import Tags from "./Tags";
@@ -43,9 +42,11 @@ import PieChart from "../PieChart/PieChart";
 import CountChart from "../CountChart/CountChart";
 
 export default function TrendsEditor() {
-  const [accessToken, setAccessToken] = useContext(AccessTokenContext);
-  const [writeKey, setWriteKey] = useContext(WriteKeyContext);
-  const [searchQuery, setSearchQuery] = useContext(SearchQueryContext);
+  const [accessToken, ] = useContext(AccessTokenContext);
+  const [writeKey, ] = useContext(WriteKeyContext);
+  const [searchQuery, ] = useContext(SearchQueryContext);
+
+  const [loading, setLoading] = useState(false);
 
   const [availableEventNameForSelect, setAvailableEventNameForSelect] =
     useState([]);
@@ -64,16 +65,15 @@ export default function TrendsEditor() {
   const userWriteKey = writeKey;
   const { user } = useAuth0();
   const { email } = user;
-  const { Search } = Input;
 
   //User search input
   const [eventKeywordList, setEventKeywordList] = useState([]);
   const [eventPropertyKeywordList, setEventPropertyKeywordList] = useState([]);
-  const [aggrigationKeywordList, setAggrigationKeywordList] = useState([
+  const [aggrigationKeywordList, ] = useState([
     "Total",
     "Unique",
   ]);
-  const [graphStyleKeywordList, setGraphStyleKeywordList] = useState([
+  const [graphStyleKeywordList, ] = useState([
     "Linear",
     "Bar",
     "Pie",
@@ -313,6 +313,8 @@ export default function TrendsEditor() {
   // execute keyword searching on when querystring is saved as state
   useEffect(() => {
     keywordSearch();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery]);
 
   //Saves values of filter input fields in filterTags state
@@ -358,17 +360,12 @@ export default function TrendsEditor() {
           },
         }
       );
-      const propertyValuesName = await response.json();
-      //console.log(propertyValuesName);
-      const AvailablePropertyValueForSelect = propertyValuesName.map(
-        (propertyValueName) => (
-          <Option value={propertyValueName[`${property}`]}>
-            {propertyValueName[`${property}`]}
-          </Option>
-        )
-      );
-
-      setAvailablePropertyValueForSelect(AvailablePropertyValueForSelect);
+      let propertyValuesName = await response.json();
+      //to remove undefined values
+      propertyValuesName = propertyValuesName.slice(0, propertyValuesName.length - 1);
+      //to filter out the empty string
+      propertyValuesName = propertyValuesName.filter((item) => item[`${selectedFilterProperty.toLowerCase()}`].length > 0)
+      setAvailablePropertyValueForSelect(propertyValuesName);
     } catch (error) {
       console.log(error.message);
     }
@@ -386,6 +383,7 @@ export default function TrendsEditor() {
     endDate,
     userWriteKey
   ) => {
+    setLoading(true);
     try {
       let filterString = JSON.stringify(filterTags);
       const response = await fetch(
@@ -396,9 +394,11 @@ export default function TrendsEditor() {
           },
         }
       );
-      const trendsData = await response.json();
+      let trendsData = await response.json();
+      trendsData = trendsData.filter((item) => item[`${selectedGroupByProperty.toLowerCase()}`]!==null && item[`${selectedGroupByProperty.toLowerCase()}`]!=="")
 
       setGraphData(trendsData);
+      setLoading(false);
     } catch (error) {
       console.log(error.message);
     }
@@ -530,7 +530,15 @@ export default function TrendsEditor() {
             0
           }
         >
-          {availablePropertyValueForSelect}
+          {
+            selectedFilterProperty ? availablePropertyValueForSelect.map(
+                (propertyValueName) => (
+                  <Option value={propertyValueName[`${selectedFilterProperty.toLowerCase()}`]}>
+                    {propertyValueName[`${selectedFilterProperty.toLowerCase()}`]}
+                  </Option>
+                )
+              ) : null
+          }
         </Select>
       </span>
 
@@ -695,6 +703,7 @@ export default function TrendsEditor() {
       endDate,
       userWriteKey
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     selectedEvent,
     eventCollectionType,
@@ -710,20 +719,24 @@ export default function TrendsEditor() {
   // At every new render, call getAllEventsNames to load available events from db
   useEffect(() => {
     getAllEventsName();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     getAllEventProperty();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     getAllDashboardName();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // fetch available filter value for a filter property passed,
   // at new render or if new filter property is selected
   useEffect(() => {
     fetchFilterPropertyValue(selectedFilterProperty);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFilterProperty]);
 
   // Handle save metrics
@@ -765,7 +778,8 @@ export default function TrendsEditor() {
           justifyContent: "left",
           alignItems: "left",
           width: "30%",
-          minHeight: "65vh",
+          overflow: 'scroll',
+          height: "66vh",
           margin: "2% 0% 1% 0%",
           boxShadow: "1px 1px 15px 8px rgba(230, 230, 230, 0)",
         }}
@@ -802,7 +816,7 @@ export default function TrendsEditor() {
           Counted as
           <Tooltip
             placement="rightTop"
-            title="Select events that you want to see. eg: Pageview, Clicked Login etc."
+            title="Total : if single user perfoms event multiple times shows all, Unique : will only count any event as one for each unique user even if they do it multiple times."
           >
             <InfoCircleOutlined
               style={{ marginLeft: "10px", color: "#1890ff" }}
@@ -918,7 +932,8 @@ export default function TrendsEditor() {
         type="inner"
         style={{
           width: "68%",
-          minHeight: "65vh",
+          height: "66vh",
+          overflow: 'scroll',
           margin: "2% 0% 1% 2%",
           marginLeft: "auto",
           boxShadow: "1px 1px 15px 8px rgba(230, 230, 230, 0)",
@@ -978,15 +993,15 @@ export default function TrendsEditor() {
             >
               <Option value="Today">Today</Option>
               <Option value="Yesterday">Yesterday</Option>
-              <Option value="Last 24 hours">Last 24 hours</Option>
+              {/* <Option value="Last 24 hours">Last 24 hours</Option>
               <Option value="Last 48 hours">Last 48 hours</Option>
               <Option value="Last 7 days">Last 7 days</Option>
-              <Option value="Last 14 days">Last 14 days</Option>
+              <Option value="Last 14 days">Last 14 days</Option> */}
               <Option value="Last 30 days">Last 30 days</Option>
               <Option value="Last 90 days">Last 90 days</Option>
-              <Option value="This Month">This Month</Option>
+              {/* <Option value="This Month">This Month</Option>
               <Option value="Previous Month">Previous Month</Option>
-              <Option value="Year to date">Year to date</Option>
+              <Option value="Year to date">Year to date</Option> */}
               <Option value="All time">All time</Option>
               <Option value="Date range">Date range</Option>
             </Select>
@@ -1010,7 +1025,9 @@ export default function TrendsEditor() {
         */}
 
         <div style={{ margin: "4vh 0 0 0" }}>
-          {selectedGroupByProperty === "" ? (
+          {loading ? (
+            <Spin size="large" style={{ margin: "15vh 0 0 25vw" }} />
+          ) : selectedGroupByProperty === "" ? (
             selectedGraphType === "Linear" ? (
               <LineCharts jsonData={graphData} />
             ) : selectedGraphType === "Table" ? (
@@ -1025,7 +1042,7 @@ export default function TrendsEditor() {
           ) : selectedGraphType === "Table" ? (
             <TableChart
               jsonData={graphData}
-              groupBy={selectedGroupByProperty}
+              groupBy={selectedGroupByProperty.toLowerCase()}
             />
           ) : selectedGraphType === "Bar" ? (
             <BarChart jsonData={graphData} groupBy={selectedGroupByProperty} />

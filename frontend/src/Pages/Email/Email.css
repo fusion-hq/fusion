@@ -1,0 +1,52 @@
+.email-input {
+    width: 100%;
+    margin-left: 0;
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.email-text {
+    width: 100%;
+    margin-left: 0;
+    margin-top: 20px;
+}
+
+.email-button {
+    margin-top: 20px;
+    margin-left: 80%;
+    width: 20%
+}
+
+.email-section {
+    flex: 4
+}
+
+.sentEmail {
+    flex: 2; 
+    height: 70vh;
+    overflow: scroll;
+}
+
+@media (max-width: 800px) {
+    .email-input {
+        width: 100%;
+        margin-left: 0;
+    }
+    
+    .email-text {
+        width: 100%;
+        margin-left: 0;
+        margin-top: 20px;
+    }
+    
+    .email-button {
+        margin-top: 20px;
+        margin-left: 75%;
+        width: 150px
+    }
+    
+    .email-section {
+        width: 100%;
+    }
+}

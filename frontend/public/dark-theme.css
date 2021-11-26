@@ -10,8 +10,10 @@
   --background-color-secondry: #0b0d0f;
   --background-color-tertiary: #000000;
   --sidenav-bg: #1d1d1d;
+  --description-color-secondry: #8d8d8d;
   /**  --sidenav-bg: #14161a; */
   --text-color: #ffffff;
+  --border: #303030;
 }
 
 body {

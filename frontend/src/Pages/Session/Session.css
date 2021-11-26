@@ -5,20 +5,20 @@
   font-family: "Inter", sans-serif;
 }
 
-.Events {
+.Session {
   min-height: 100vh;
   background-color: #ffffff;
 }
 
 /* main page that holds side nav and page content */
-.Events .main-container {
+.Session .main-container {
   display: flex;
   min-height: 100vh;
   background-color: #eff3f6;
 }
 
 /* current page specific data container*/
-.Events .content-container {
+.Session .content-container {
   width: 100%;
   height: 100vh;
   background-color: var(--background-color-primary);
@@ -31,7 +31,7 @@
 }
 
 /* Actual data goes here*/
-.Events .content {
+.Session .content {
   display: flex;
   width: 100%;
   flex-direction: column;
@@ -41,7 +41,7 @@
   margin-bottom: 10px;
 }
 
-.Events .content .header {
+.Session .content .header {
   width: 90%;
   display: flex;
   flex-direction: column;
@@ -50,14 +50,14 @@
   margin-bottom: 10px;
 }
 
-.Events .header h1 {
+.Session .header h1 {
   font-size: 1.8rem;
   margin-bottom: 5px;
   font-weight: 500;
   font-family: "TrelloFonts";
 }
 
-.Events .header p {
+.Session .header p {
   font-size: 1.1rem;
   font-weight: 400;
   font-family: "TrelloFonts";
@@ -66,17 +66,22 @@
   color: var(--description-color-secondry);
 }
 
-.Events .event-table {
+.Session .header .controllers {
+  margin-bottom: 10px;
+}
+
+.Session .user-table {
+  margin-top: 20px;
   width: 90%;
 }
 
-.Events .user-details-section {
+.Session .user-details-section {
   display: flex;
   justify-content: space-around;
   align-items: center;
 }
 
-.Events .user-details-section .user-details-column {
+.Session .user-details-section .user-details-column {
   display: flex;
   flex-direction: column;
   justify-content: baseline;

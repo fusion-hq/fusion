@@ -23,14 +23,8 @@ function PieChart({ jsonData, groupBy }) {
 
   //check current theme and change graph colors
   if (currentTheme === "light") {
-    var xTicksColor = "#333333",
-      yGridColor = "#efefef",
-      yTicksColor = "#333333",
-      tooltipColor = "#1d293b";
+    var tooltipColor = "#1d293b";
   } else if (currentTheme === "dark") {
-    xTicksColor = "#dedede";
-    yGridColor = "#333333";
-    yTicksColor = "#dedede";
     tooltipColor = "#000000";
   }
 

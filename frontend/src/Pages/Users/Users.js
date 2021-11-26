@@ -15,20 +15,28 @@ import {
   Dropdown,
   Button,
   message,
-  Divider,
+  Modal,
+  Input
 } from "antd";
+import {
+  ReloadOutlined,
+  LeftOutlined,
+  RightOutlined,
+} from "@ant-design/icons";
+import { LoadingOutlined } from '@ant-design/icons';
 import { AccessTokenContext } from "../../Context/AccessTokenContext";
 import { WriteKeyContext } from "../../Context/WriteKeyContext";
 import Tags from "../../Components/TrendsEditor/Tags";
 import moment from "moment";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { monokai } from "react-syntax-highlighter/dist/esm/styles/hljs";
+import axios from "axios";
 
 function Users() {
   const history = useHistory();
 
-  const [accessToken, setAccessToken] = useContext(AccessTokenContext);
-  const [writeKey, setWriteKey] = useContext(WriteKeyContext);
+  const [accessToken, ] = useContext(AccessTokenContext);
+  const [writeKey, ] = useContext(WriteKeyContext);
   const token = accessToken;
   const serverUrl = process.env.REACT_APP_SERVER_URL;
   const [userList, setUserList] = useState([]);
@@ -36,6 +44,8 @@ function Users() {
     useState(false);
   const [DateRangeFilterDropdownVisible, setDateRangeFilterDropdownVisible] =
     useState(false);
+
+  const [loading, setLoading] = useState(true);
 
   // used by WHERE property popup state auto visibility
   const [filterTags, setFilterTags] = useState([]);
@@ -59,6 +69,42 @@ function Users() {
   //componnets from antd
   const { Option } = Select;
   const { RangePicker } = DatePicker;
+
+  //pagination
+  const [page, setPage] = useState(1);
+  const limit = 10;
+
+  //cohort states
+  const [modelState, setModalState] = useState(false);
+  const [cohortName, setCohortName] = useState();
+  const [cohortDesc, setCohortDesc] = useState();
+  const [modalLoading, setModalLoading] = useState(false);
+
+  const showModal = () => {
+    setModalState(true)
+  }
+
+  const handleOk = () => {
+    setModalLoading(true);
+    setTimeout(() => {
+      let filters = {};
+      const key = filterTags[0].Property;
+      const val = filterTags[0].Value;
+      filters[key] = val;
+      filters = JSON.stringify(filters);
+      axios.get(`${serverUrl}/saveCohort?name=${cohortName}&description=${cohortDesc}&filters=${filters}&writeKey=${writeKey}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+      setModalState(false)
+    }, 3000);
+  };
+
+  const handleCancel = () => {
+    setModalState(false)
+  };
 
   // handles change in date range picker selector
   function handleDatePickerValueChange(date, dateString) {
@@ -279,12 +325,15 @@ function Users() {
     selectedDateTimeRange,
     startDate,
     endDate,
-    writeKey
+    writeKey,
+    page,
+    limit
   ) => {
+    setLoading(true);
     try {
       let filterString = JSON.stringify(filterTags);
       const response = await fetch(
-        `${serverUrl}/users?filters=${filterString}&dateTime=${selectedDateTimeRange}&startDate=${startDate}&endDate=${endDate}&writeKey=${writeKey}`,
+        `${serverUrl}/users?filters=${filterString}&dateTime=${selectedDateTimeRange}&startDate=${startDate}&endDate=${endDate}&writeKey=${writeKey}&page=${page}&limit=${limit}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -292,11 +341,17 @@ function Users() {
         }
       );
       const users = await response.json();
-      //console.log(users);
+
       users.map((user) => {
         user.created_at = moment(user.created_at).fromNow();
+        if (user.email === null) {
+          user.email = `Visitor${user.user_id.substr(user.user_id.length - 5)}`;
+        }
+        return 0;
       });
+
       setUserList(users);
+      setLoading(false);
     } catch (error) {
       console.log(error.message);
     }
@@ -365,12 +420,16 @@ function Users() {
   //fetch available user porperties
   useEffect(() => {
     getAllUserProperty();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // fetch available filter value for a filter property passed,
   // at new render or if new filter property is selected
   useEffect(() => {
     getAllUserPropertyValue(selectedFilterProperty);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFilterProperty]);
 
   useEffect(() => {
@@ -379,9 +438,13 @@ function Users() {
       selectedDateTimeRange,
       startDate,
       endDate,
-      writeKey
+      writeKey,
+      page,
+      limit
     );
-  }, [filterTags, selectedDateTimeRange, startDate, endDate, writeKey]);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterTags, selectedDateTimeRange, startDate, endDate, writeKey, page, limit]);
 
   function onChange(pagination, filters, sorter, extra) {
     //console.log("params", pagination, filters, sorter, extra);
@@ -394,9 +457,17 @@ function Users() {
         <div className="content-container">
           <div className="content">
             <div className="header">
-              <h1>Users</h1>
-              <p>Explore & Segment users based on common properties</p>
-
+              <div style={{display: 'flex', justifyContent: 'space-between', width: "100%"}}>
+                <div>
+                  <h1>Users</h1>
+                  <p>Explore & Segment users based on common properties</p>
+                </div>
+                <div>
+                  <Button onClick={() => {
+                    history.push('/cohort')
+                  }}>Your Cohorts</Button>
+                </div>
+              </div>
               <div className="controllers">
                 <Dropdown
                   overlay={customDateRangeMenu}
@@ -418,15 +489,15 @@ function Users() {
                   >
                     <Option value="Today">Today</Option>
                     <Option value="Yesterday">Yesterday</Option>
-                    <Option value="Last 24 hours">Last 24 hours</Option>
-                    <Option value="Last 48 hours">Last 48 hours</Option>
-                    <Option value="Last 7 days">Last 7 days</Option>
-                    <Option value="Last 14 days">Last 14 days</Option>
+                    {/* <Option value="Last 24 hours">Last 24 hours</Option>
+              <Option value="Last 48 hours">Last 48 hours</Option>
+              <Option value="Last 7 days">Last 7 days</Option>
+              <Option value="Last 14 days">Last 14 days</Option> */}
                     <Option value="Last 30 days">Last 30 days</Option>
                     <Option value="Last 90 days">Last 90 days</Option>
-                    <Option value="This Month">This Month</Option>
-                    <Option value="Previous Month">Previous Month</Option>
-                    <Option value="Year to date">Year to date</Option>
+                    {/* <Option value="This Month">This Month</Option>
+              <Option value="Previous Month">Previous Month</Option>
+              <Option value="Year to date">Year to date</Option> */}
                     <Option value="All time">All time</Option>
                     <Option value="Date range">Date range</Option>
                   </Select>
@@ -446,6 +517,71 @@ function Users() {
                     Add Filter
                   </Button>
                 </Dropdown>
+                <Button
+                  type="primary"
+                  icon={<ReloadOutlined />}
+                  style={{ margin: "5px 0px 10px 15px" }}
+                  onClick={() => {
+                    getAllUsers(
+                      filterTags,
+                      selectedDateTimeRange,
+                      startDate,
+                      endDate,
+                      writeKey,
+                      page,
+                      limit
+                    );
+                  }}
+                >
+                  Refresh
+                </Button>
+                <Button
+                  type="primary"
+                  icon={<LeftOutlined />}
+                  style={{ margin: "5px 0px 10px 15px" }}
+                  onClick={() => {
+                    if (page > 1) {
+                      setPage((page) => page - 1);
+                    }
+                  }}
+                >
+                  Previous
+                </Button>
+                <Button
+                  type="primary"
+                  icon={<RightOutlined />}
+                  style={{ margin: "5px 0px 10px 15px" }}
+                  onClick={() => {
+                    setPage((page) => page + 1);
+                  }}
+                >
+                  Next
+                </Button>
+                <Modal
+                  visible={modelState}
+                  title="Save Cohort"
+                  onOk={handleOk}
+                  onCancel={handleCancel}
+                  loading={modalLoading}
+                  footer={[
+                    <Button key="back" onClick={handleCancel}>
+                      Return
+                    </Button>,
+                    <Button key="submit" type="primary" onClick={handleOk}>
+                      {modalLoading ? <LoadingOutlined /> : 'Submit'}
+                    </Button>
+                  ]}
+                >
+                 <Input onChange={(e) => {
+                   setCohortName(e.target.value)
+                 }} placeholder="Cohort Name" />
+                 <Input onChange={(e) => {
+                   setCohortDesc(e.target.value)
+                 }} style={{marginTop: 20}} placeholder="Cohort Description" />
+                </Modal>
+                {
+                  filterTags.length > 0 ? <Button onClick={showModal} style={{ margin: "0px 0px 0px 15px" }}>Add to Cohort</Button> : null
+                }
               </div>
 
               {filterTags.map((filterTag, index) => (
@@ -460,6 +596,7 @@ function Users() {
               className="user-table"
               columns={columns}
               dataSource={userList}
+              loading={loading}
               onChange={onChange}
               pagination={true}
               rowKey={(record) => {

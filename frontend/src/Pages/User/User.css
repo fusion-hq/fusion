@@ -65,6 +65,7 @@
   font-weight: 400;
   font-family: "TrelloFonts";
   font-style: normal;
+  color: var(--description-color-secondry);
 }
 
 .User .controllers {
