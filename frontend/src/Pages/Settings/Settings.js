@@ -13,7 +13,7 @@
  import Setup from "./Setup";
  
  function Settings() {
-   const paymentsURL = "https://payments-service-c9468d8b73e9a2d1.onporter.run/";
+   const paymentsURL = process.env.REACT_APP_PAYMENT_URL;
  
    const [modelState, setModalState] = useState(false);
    const [modalLoading, setModalLoading] = useState(false);
@@ -47,8 +47,7 @@
  
    const [messageLimit, setMessageLimit] = useState(0);
  
-   const planURL =
-     "https://user-plan-service-c1ae03e9e39e760c.onporter.run/plans/";
+   const planURL = process.env.REACT_APP_USER_URL
    const [writeKey] = useContext(WriteKeyContext);
  
    const [planPrice, setPlanPrice] = useState(0);
