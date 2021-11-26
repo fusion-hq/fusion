@@ -87,8 +87,8 @@ import EmailCard from "../../Components/EmailCard.js";
         }
       }
 
-    const emailBaseAPI = 'https://fusion-email-service-a61b04015406369e.onporter.run/'
-    const planURL = 'https://user-plan-service-c1ae03e9e39e760c.onporter.run/plans/'
+    const emailBaseAPI = process.env.REACT_EMAIL_BASE_API
+    const planURL = process.env.REACT_APP_USER_URL
     const [email, setEmail] = useState([]);
     const [emailText, setEmailText] = useState();
     const [loading, setLoading] = useState(false);
