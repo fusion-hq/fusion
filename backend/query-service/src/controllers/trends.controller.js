@@ -1,12 +1,14 @@
 const { Pool } = require("pg");
 require("dotenv").config();
-var moment = require("moment"); // Connect to the postgres DB
+var moment = require("moment"); 
+
 const pool = new Pool({
-  user: "me",
-  host: "localhost",
-  database: "fusion",
-  password: "password",
-  port: 5432,
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB,
+  password: process.env.DB_PASSWORD,
+  port: process.env.DB_PORT,
+  ssl: { rejectUnauthorized: false }
 });
 
 // Return requested trends data from db
@@ -58,10 +60,10 @@ const getTrendsData = async (req, res) => {
     }
   });
 
-  var totalVolumeWithoutBreakdown = `SELECT COUNT(1), date_trunc($1, timestamp) as approx_timestamp FROM fusion_event WHERE event = $2 ${whereClause} AND write_key = $3 AND timestamp between $4 and $5 group by approx_timestamp ORDER BY approx_timestamp`;
-  var totalVolumeWithBreakdown = `SELECT COUNT(1), properties ->> '${groupBy}' AS ${groupBy} FROM fusion_event WHERE event = $1 ${whereClause} AND write_key = $2 AND timestamp between $3 and $4 GROUP BY ${groupBy} ORDER BY Count(1) DESC`;
-  var uniqueWithoutBreakdown = `SELECT COUNT(DISTINCT properties ->> 'user_id'), date_trunc($1, timestamp) as approx_timestamp FROM fusion_event WHERE event = $2 ${whereClause} AND write_key = $3 AND timestamp between $4 and $5 group by approx_timestamp ORDER BY approx_timestamp`;
-  var uniqueWithBreakdown = `SELECT COUNT(DISTINCT properties ->> 'user_id'), properties ->> '${groupBy}' AS ${groupBy} FROM fusion_event WHERE event = $1 ${whereClause} AND write_key = $2 AND timestamp between $3 and $4 GROUP BY ${groupBy} ORDER BY Count(1) DESC`;
+  var totalVolumeWithoutBreakdown = `SELECT COUNT(1), date_trunc($1, timestamp) as approx_timestamp FROM fusion_event_${writeKey} WHERE event = $2 ${whereClause} AND write_key = $3 AND timestamp between $4 and $5 group by approx_timestamp ORDER BY approx_timestamp`;
+  var totalVolumeWithBreakdown = `SELECT COUNT(1), properties ->> '${groupBy}' AS ${groupBy} FROM fusion_event_${writeKey} WHERE event = $1 ${whereClause} AND write_key = $2 AND timestamp between $3 and $4 GROUP BY ${groupBy} ORDER BY Count(1) DESC`;
+  var uniqueWithoutBreakdown = `SELECT COUNT(DISTINCT properties ->> 'user_id'), date_trunc($1, timestamp) as approx_timestamp FROM fusion_event_${writeKey} WHERE event = $2 ${whereClause} AND write_key = $3 AND timestamp between $4 and $5 group by approx_timestamp ORDER BY approx_timestamp`;
+  var uniqueWithBreakdown = `SELECT COUNT(DISTINCT properties ->> 'user_id'), properties ->> '${groupBy}' AS ${groupBy} FROM fusion_event_${writeKey} WHERE event = $1 ${whereClause} AND write_key = $2 AND timestamp between $3 and $4 GROUP BY ${groupBy} ORDER BY Count(1) DESC`;
 
   var sqlParamsWithoutBreakdown = [
     timescale,

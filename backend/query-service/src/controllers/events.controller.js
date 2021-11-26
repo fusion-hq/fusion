@@ -1,20 +1,21 @@
 const { Pool } = require("pg");
 require("dotenv").config();
+var moment = require('moment');
 
-// Connect to the postgres DB
 const pool = new Pool({
-  user: "me",
-  host: "localhost",
-  database: "fusion",
-  password: "password",
-  port: 5432,
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB,
+  password: process.env.DB_PASSWORD,
+  port: process.env.DB_PORT,
+  ssl: { rejectUnauthorized: false }
 });
 
 //Return all unique event name in ascending order
 const getAllEventsName = async (req, res) => {
   var { writeKey } = await req.query;
   const response = await pool.query(
-    "SELECT DISTINCT event FROM fusion_event WHERE write_key = $1 ORDER BY event ASC",
+    `SELECT DISTINCT event FROM fusion_event_${writeKey} WHERE write_key = $1 ORDER BY event ASC`,
     [writeKey]
   );
   res.status(200).json(response.rows);
@@ -22,7 +23,7 @@ const getAllEventsName = async (req, res) => {
 
 //Return laest event entries(with properties) from the table in descednding order
 const getAllEventData = async (req, res) => {
-  const { event, filters, dateTime, startDate, endDate, writeKey } =
+  const { event, filters, dateTime, startDate, endDate, page, limit, writeKey } =
     await req.query;
   //console.log(req.query);
 
@@ -51,9 +52,9 @@ const getAllEventData = async (req, res) => {
     }
   });
 
-  var queryStatementWithoutEventFilter = `SELECT event, event_id, properties, properties ->> 'user_id' AS user_id, properties ->> 'website' AS source, timestamp FROM fusion_event WHERE write_key = $1 ${whereClause} AND timestamp BETWEEN $2 AND $3 ORDER BY timestamp DESC`;
+  var queryStatementWithoutEventFilter = `SELECT event, event_id, properties, properties ->> 'user_id' AS user_id, properties ->> 'website' AS source, timestamp FROM fusion_event_${writeKey} WHERE write_key = $1 ${whereClause} AND timestamp BETWEEN $2 AND $3 ORDER BY timestamp DESC OFFSET ${(page - 1) * limit} LIMIT ${limit}`;
   var sqlParamsWithoutEventFilter = [writeKey, startDateTime, endDateTime];
-  var queryStatementWithEventFilter = `SELECT event, event_id, properties, properties ->> 'user_id' AS user_id, properties ->> 'website' AS source, timestamp FROM fusion_event WHERE write_key = $1 AND event = $2 ${whereClause} AND timestamp BETWEEN $3 AND $4 ORDER BY timestamp DESC`;
+  var queryStatementWithEventFilter = `SELECT event, event_id, properties, properties ->> 'user_id' AS user_id, properties ->> 'website' AS source, timestamp FROM fusion_event_${writeKey} WHERE write_key = $1 AND event = $2 ${whereClause} AND timestamp BETWEEN $3 AND $4 ORDER BY timestamp DESC OFFSET ${(page - 1) * limit} LIMIT ${limit}`;
   var sqlParamsWithEventFilter = [writeKey, event, startDateTime, endDateTime];
 
   var finalQueryStatement = queryStatementWithEventFilter;
@@ -207,46 +208,9 @@ function calculateDateTime(dateTime, startDate, endDate) {
 const getAllEventsProperties = async (req, res) => {
   const { writeKey } = await req.query;
   const response = await pool.query(
-    "SELECT DISTINCT json_object_keys (properties) AS properties FROM fusion_event WHERE write_key = $1 ORDER BY properties ASC",
+    `SELECT DISTINCT json_object_keys (properties) AS properties FROM fusion_event_${writeKey} WHERE write_key = $1 ORDER BY properties ASC`,
     [writeKey]
   );
-  res.status(200).json(response.rows);
-};
-
-// Return events with custom properties filter and datetime values
-const getEventWithCustomFilters = async (req, res) => {
-  // destructure the received query params
-  const {
-    eventOp: eventOperator,
-    event: event,
-    propertiesOp: propertiesOperator,
-    properties: properties,
-    pageOp: pageOperator,
-    page: page,
-    osOp: osOperator,
-    os: os,
-    browserOp: browserOperator,
-    browser: browser,
-    countryOp: countryOperator,
-    country: country,
-    cityOp: cityOperator,
-    city: city,
-    startDate: startDateTime,
-    endDate: endDateTime,
-  } = req.query;
-
-  const query_statement = `SELECT * FROM trackdata WHERE event ${eventOperator} $1 AND properties ${propertiesOperator} $2 AND page ${pageOperator} $3 AND os ${osOperator} $4 AND browser ${browserOperator} $5 AND country ${countryOperator} $6 AND city ${cityOperator} $7 AND timestamp between $8 and $9`;
-  const response = await pool.query(query_statement, [
-    event,
-    properties,
-    page,
-    os,
-    browser,
-    country,
-    city,
-    startDateTime,
-    endDateTime,
-  ]);
   res.status(200).json(response.rows);
 };
 
@@ -255,7 +219,7 @@ const getFilterPropertyValues = async (req, res) => {
   const { propertyName, writeKey } = await req.query;
   if (propertyName !== "") {
     const response = await pool.query(
-      `SELECT DISTINCT properties ->> '${propertyName}' as ${propertyName} FROM fusion_event WHERE write_key = $1 ORDER BY ${propertyName} ASC`,
+      `SELECT DISTINCT properties ->> '${propertyName}' as ${propertyName} FROM fusion_event_${writeKey} WHERE write_key = $1 ORDER BY ${propertyName} ASC`,
       [writeKey]
     );
     res.status(200).json(response.rows);
@@ -264,10 +228,54 @@ const getFilterPropertyValues = async (req, res) => {
   }
 };
 
+
+//get funnel
+const getFunnel = async(req, res) => {
+  const {events, writeKey, dateTime, startDate, endDate} = await req.query;
+
+  const [startDateTime, endDateTime] = await calculateDateTime(
+    dateTime,
+    startDate,
+    endDate
+  );
+
+  let n_events = JSON.parse(events);
+  let funnel = [];
+  if(events) {
+    for(let event of n_events){
+
+      filterList = event['filters'];
+      var whereClause = ``;
+
+      filterList.map((filter) => {
+        if (filter.Operator == "is equal") {
+          whereClause += `AND properties ->> '${filter.Property}' = '${filter.Value}'`;
+        } else if (filter.Operator == "is not equal") {
+          whereClause += `AND properties ->> '${filter.Property}' != '${filter.Value}'`;
+        } else if (filter.Operator == "contain") {
+          whereClause += `AND properties ->> '${filter.Property}' LIKE '%${filter.Value}%'`;
+        } else if (filter.Operator == "not contain") {
+          whereClause += `AND properties ->> '${filter.Property}' NOT LIKE '%${filter.Value}%'`;
+        }
+      });
+
+      const response = await pool.query(
+        `select count(distinct(properties->>'user_id')) from fusion_event_${writeKey} where event = '${event["event"]}' and write_key = $1 ${whereClause} AND timestamp BETWEEN $2 AND $3`,
+        [writeKey, startDateTime, endDateTime]
+      )
+      response.rows[0]['event'] = event["event"];
+      funnel.push(response.rows);
+    }
+  }
+  return res.status(200).json(funnel);
+}
+
 module.exports = {
   getAllEventsName,
   getAllEventData,
   getAllEventsProperties,
-  getEventWithCustomFilters,
   getFilterPropertyValues,
+  getFunnel,
+  validateQueryParameters,
+  calculateDateTime,
 };

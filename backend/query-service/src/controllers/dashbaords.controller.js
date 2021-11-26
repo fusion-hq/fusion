@@ -1,20 +1,20 @@
 const { Pool } = require("pg");
 require("dotenv").config();
 
-// Connect to the postgres DB
 const pool = new Pool({
-  user: "me",
-  host: "localhost",
-  database: "fusion",
-  password: "password",
-  port: 5432,
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB,
+  password: process.env.DB_PASSWORD,
+  port: process.env.DB_PORT,
+  ssl: { rejectUnauthorized: false }
 });
 
 //Return all available dashboards in asc order for logged in user
 const getAllDashboards = async (req, res) => {
   const { writeKey } = await req.query;
   const response = await pool.query(
-    "SELECT dashboard_name, dashboard_description, created_by FROM Dashboards WHERE write_key = $1 ORDER BY dashboard_name ASC",
+    `SELECT dashboard_name, dashboard_description, created_by FROM Dashboards_${writeKey} WHERE write_key = $1 ORDER BY dashboard_name ASC`,
     [writeKey]
   );
   res.status(200).json(response.rows);
@@ -24,12 +24,12 @@ const getAllDashboards = async (req, res) => {
 const createDashboard = async (req, res) => {
   const { name, description, createdBy, writeKey } = await req.query;
   await pool.query(
-    "INSERT INTO Dashboards(dashboard_name, dashboard_description, created_by, write_key) VALUES ($1, $2, $3, $4)",
+    `INSERT INTO Dashboards_${writeKey} (dashboard_name, dashboard_description, created_by, write_key) VALUES ($1, $2, $3, $4)`,
     [name, description, createdBy, writeKey]
   );
   // Return new list of dashboards after new dashboard is saved into db
   const response = await pool.query(
-    "SELECT dashboard_name, dashboard_description, created_by FROM Dashboards WHERE write_key = $1 ORDER BY dashboard_name ASC",
+    `SELECT dashboard_name, dashboard_description, created_by FROM Dashboards_${writeKey} WHERE write_key = $1 ORDER BY dashboard_name ASC`,
     [writeKey]
   );
   res.status(200).json(response.rows);
@@ -41,17 +41,17 @@ const deleteDashboard = async (req, res) => {
 
   // Delete all the metrics saved on that dashbaord
   await pool.query(
-    "DELETE FROM SavedMetrics WHERE dashboard=$1 AND write_key=$2",
+    `DELETE FROM SavedMetrics_${writeKey} WHERE dashboard=$1 AND write_key=$2`,
     [name, writeKey]
   );
   // Delete the dashbaord
   await pool.query(
-    "DELETE FROM Dashboards WHERE dashboard_name = $1 AND dashboard_description = $2 AND created_by = $3 AND write_key = $4",
+    `DELETE FROM Dashboards_${writeKey} WHERE dashboard_name = $1 AND dashboard_description = $2 AND created_by = $3 AND write_key = $4`,
     [name, description, createdBy, writeKey]
   );
   // Return new list of dashboards
   const response = await pool.query(
-    "SELECT dashboard_name, dashboard_description, created_by FROM Dashboards WHERE write_key = $1 ORDER BY dashboard_name ASC",
+    `SELECT dashboard_name, dashboard_description, created_by FROM Dashboards_${writeKey} WHERE write_key = $1 ORDER BY dashboard_name ASC`,
     [writeKey]
   );
   res.status(200).json(response.rows);
@@ -61,7 +61,7 @@ const deleteDashboard = async (req, res) => {
 const getAllSavedMetrics = async (req, res) => {
   const { dashboard, writeKey } = await req.query;
   const response = await pool.query(
-    "SELECT * FROM SavedMetrics WHERE dashboard=$1 AND write_key=$2 ORDER BY created_at",
+    `SELECT * FROM SavedMetrics_${writeKey} WHERE dashboard=$1 AND write_key=$2 ORDER BY created_at`,
     [dashboard, writeKey]
   );
   res.status(200).json(response.rows);
@@ -85,7 +85,7 @@ const saveMetrics = async (req, res) => {
   } = await req.query;
 
   const response = await pool.query(
-    "INSERT INTO SavedMetrics( metrics_name, dashboard, aggregator, event, filters, timescale, chart_type, group_by, date_time, start_date, end_date, write_key) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12);",
+    `INSERT INTO SavedMetrics_${writeKey} ( metrics_name, dashboard, aggregator, event, filters, timescale, chart_type, group_by, date_time, start_date, end_date, write_key) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12);`,
     [
       metricsName,
       dashboard,
@@ -109,7 +109,7 @@ const deleteSavedMetrics = async (req, res) => {
   const { metricsName, dashboard, writeKey } = await req.query;
 
   const response = await pool.query(
-    "DELETE FROM SavedMetrics WHERE metrics_name=$1 AND dashboard=$2 AND write_key=$3;",
+    `DELETE FROM SavedMetrics_${writeKey} WHERE metrics_name=$1 AND dashboard=$2 AND write_key=$3;`,
     [metricsName, dashboard, writeKey]
   );
   res.status(200).json([]);

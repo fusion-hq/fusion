@@ -3,29 +3,24 @@ const app = express();
 const cors = require("cors");
 const jwt = require("express-jwt");
 const jwks = require("jwks-rsa");
-
-//check if environment is production or not
-const isProduction = process.env.NODE_ENV === "production";
-const origin = {
-  origin: isProduction ? "https://localhost:3000" : "*",
-};
+require("dotenv").config();
 
 var jwtCheck = jwt({
   secret: jwks.expressJwtSecret({
     cache: true,
     rateLimit: true,
     jwksRequestsPerMinute: 5,
-    jwksUri: "https://fusion-analytics.us.auth0.com/.well-known/jwks.json",
+    jwksUri: `https://${process.env.AUTH0_DOMAIN}/.well-known/jwks.json`,
   }),
-  audience: "https://fusion/api",
+  audience: process.env.AUTH0_AUDIENCE,
   algorithms: ["RS256"],
 });
 
 //middlewares
 app.use(cors({ origin: "*" }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-//app.use(jwtCheck);
+app.use(express.json({limit: '100mb'}));
+app.use(express.urlencoded({limit: '100mb', extended: false}));
+app.use(jwtCheck);
 
 //routes
 app.use(require("./routes/index"));
@@ -33,7 +28,9 @@ app.use(require("./routes/events"));
 app.use(require("./routes/trends"));
 app.use(require("./routes/dashboards"));
 app.use(require("./routes/users"));
+app.use(require("./routes/cohorts"));
+app.use(require("./routes/session"));
 
-app.listen(process.env.SERVER_PORT || 6060, () => {
+app.listen(process.env.PORT || 6060, () => {
   console.log(`Fusion API server listening...`);
 });

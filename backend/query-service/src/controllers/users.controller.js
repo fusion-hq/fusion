@@ -1,19 +1,21 @@
 const { Pool } = require("pg");
 require("dotenv").config();
-var moment = require("moment"); // Connect to the postgres DB
+var moment = require("moment");
+
 const pool = new Pool({
-  user: "me",
-  host: "localhost",
-  database: "fusion",
-  password: "password",
-  port: 5432,
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB,
+  password: process.env.DB_PASSWORD,
+  port: process.env.DB_PORT,
+  ssl: { rejectUnauthorized: false }
 });
 
 // Return unique user properties in ascending order - used by property filter menu
 const getAllUserProperties = async (req, res) => {
   const { writeKey } = await req.query;
   const response = await pool.query(
-    "SELECT DISTINCT json_object_keys (properties) AS properties FROM fusion_user WHERE write_key = $1 ORDER BY properties ASC",
+    `SELECT DISTINCT json_object_keys (properties) AS properties FROM fusion_user_${writeKey} WHERE write_key = $1 ORDER BY properties ASC`,
     [writeKey]
   );
   res.status(200).json(response.rows);
@@ -24,7 +26,7 @@ const getUserPropertyValues = async (req, res) => {
   const { propertyName, writeKey } = await req.query;
   if (propertyName !== "") {
     const response = await pool.query(
-      `SELECT DISTINCT properties ->> '${propertyName}' as ${propertyName} FROM fusion_user WHERE write_key = $1 AND properties ->> '${propertyName}' IS NOT NULL ORDER BY ${propertyName} ASC`,
+      `SELECT DISTINCT properties ->> '${propertyName}' as ${propertyName} FROM fusion_user_${writeKey} WHERE write_key = $1 AND properties ->> '${propertyName}' IS NOT NULL ORDER BY ${propertyName} ASC`,
       [writeKey]
     );
     res.status(200).json(response.rows);
@@ -52,7 +54,7 @@ const getAllUsers = async (req, res) => {
     lib,
     libVersion,
    */
-  const { filters, dateTime, startDate, endDate, writeKey } = await req.query;
+  const { filters, dateTime, startDate, endDate, writeKey, limit, page } = await req.query;
   //console.log(req.query);
 
   const [startDateTime, endDateTime] = await calculateDateTime(
@@ -88,7 +90,7 @@ const getAllUsers = async (req, res) => {
     }
   });
 
-  var queryStatement = `SELECT properties->>'email' AS email, properties->>'user_id' AS user_id, properties->>'device_id' AS device_id, uuid, id, properties, created_at FROM fusion_user WHERE write_key=$1 ${whereClause} AND created_at between $2 AND $3 ORDER BY created_at DESC;`;
+  var queryStatement = `SELECT properties->>'email' AS email, properties->>'user_id' AS user_id, properties->>'device_id' AS device_id, uuid, id, properties, created_at FROM fusion_user_${writeKey} WHERE write_key=$1 ${whereClause} AND created_at between $2 AND $3 ORDER BY created_at DESC OFFSET ${(page - 1) * limit} LIMIT ${limit};`;
   var sqlParams = [writeKey, startDateTime, endDateTime];
 
   if (validateQueryParameters(dateTime, startDateTime, endDateTime)) {
@@ -139,9 +141,9 @@ const getUserPerformedEvents = async (req, res) => {
       userIdListClause += `AND properties ->> 'user_id' = '${userId}'`;
     });
 
-    var queryStatementWithoutEventFilter = `SELECT event, event_id, properties, properties ->> 'user_id' AS user_id, properties ->> 'page' AS page, properties ->> 'website' AS source, timestamp FROM fusion_event WHERE write_key = $1 ${propertyFilterClause} ${userIdListClause} AND timestamp BETWEEN $2 AND $3 ORDER BY timestamp DESC`;
+    var queryStatementWithoutEventFilter = `SELECT event, event_id, properties, properties ->> 'user_id' AS user_id, properties ->> 'page' AS page, properties ->> 'website' AS source, timestamp FROM fusion_event_${writeKey} WHERE write_key = $1 ${propertyFilterClause} ${userIdListClause} AND timestamp BETWEEN $2 AND $3 ORDER BY timestamp DESC`;
     var sqlParamsWithoutEventFilter = [writeKey, startDateTime, endDateTime];
-    var queryStatementWithEventFilter = `SELECT event, event_id, properties, properties ->> 'user_id' AS user_id, properties ->> 'page' AS page, properties ->> 'website' AS source, timestamp FROM fusion_event WHERE write_key = $1 AND event = $2 ${propertyFilterClause} ${userIdListClause} AND timestamp BETWEEN $3 AND $4 ORDER BY timestamp DESC`;
+    var queryStatementWithEventFilter = `SELECT event, event_id, properties, properties ->> 'user_id' AS user_id, properties ->> 'page' AS page, properties ->> 'website' AS source, timestamp FROM fusion_event_${writeKey} WHERE write_key = $1 AND event = $2 ${propertyFilterClause} ${userIdListClause} AND timestamp BETWEEN $3 AND $4 ORDER BY timestamp DESC`;
     var sqlParamsWithEventFilter = [
       writeKey,
       event,
@@ -183,7 +185,7 @@ const getUserPersonalData = async (req, res) => {
   user_ids,
   created_at,
   properties
-  FROM fusion_user
+  FROM fusion_user_${writeKey}
   WHERE uuid =$1
   AND properties ->>'user_id' = $2
   AND properties ->>'device_id' = $3
