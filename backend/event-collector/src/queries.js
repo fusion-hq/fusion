@@ -9,40 +9,19 @@ require("dotenv").config();
 const moment = require("moment");
 const axios = require("axios");
 const { v4 } = require("uuid");
+const planURL = process.env.USER_API_URL
+
 require("dotenv").config();
 
 // Connect to the postgres DB
 const pool = new Pool({
-  user: "me",
-  host: "localhost",
-  database: "fusion",
-  password: "password",
-  port: 5432,
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB,
+  password: process.env.DB_PASSWORD ,
+  port: process.env.DB_PORT,
+  ssl: { rejectUnauthorized: false }
 });
-
-// Create necessary tables
-const createSystemTables = async () => {
-  console.log("creating system tables...");
-
-  await pool.query(
-    "CREATE TABLE IF NOT EXISTS ConsoleUser (apikey VARCHAR ( 64 ))"
-  );
-  await pool.query(
-    "CREATE TABLE IF NOT EXISTS AllowedWebsites (website_id INT GENERATED ALWAYS AS IDENTITY,website_name VARCHAR,write_key VARCHAR)"
-  );
-  await pool.query(
-    "CREATE TABLE IF NOT EXISTS Dashboards (dashbaord_id INT GENERATED ALWAYS AS IDENTITY,dashboard_name VARCHAR,dashboard_description VARCHAR,created_by VARCHAR,write_key VARCHAR);"
-  );
-  await pool.query(
-    "CREATE TABLE IF NOT EXISTS SavedMetrics (metrics_id INT GENERATED ALWAYS AS IDENTITY,metrics_name VARCHAR,dashboard VARCHAR,aggregator VARCHAR,event VARCHAR,filters VARCHAR,timescale VARCHAR,chart_type VARCHAR,group_by VARCHAR,date_time VARCHAR,start_date VARCHAR,end_date VARCHAR,write_key VARCHAR,created_at TIMESTAMPTZ DEFAULT Now())"
-  );
-  await pool.query(
-    "CREATE TABLE IF NOT EXISTS fusion_event (event_id serial NOT NULL PRIMARY KEY,event VARCHAR,properties json,write_key VARCHAR,timestamp TIMESTAMP )"
-  );
-  await pool.query(
-    "CREATE TABLE IF NOT EXISTS fusion_user (id serial NOT NULL PRIMARY KEY,uuid VARCHAR,properties json,user_ids TEXT [],is_identified BOOLEAN,write_key VARCHAR,created_at TIMESTAMP)"
-  );
-};
 
 // Convert UNIX timestamp to Date Time
 function timestampToDateTime(UNIX_timestamp) {
@@ -60,24 +39,10 @@ function timestampToDateTime(UNIX_timestamp) {
   return dateTime;
 }
 
-function addLocationData(user_ip) {
-  console.log("userip");
-  pool.query(
-    "INSERT INTO fusion_event (event, properties, write_key, timestamp) VALUES ($1, $2, $3, $4)",
-    [event, properties, writeKey, dateTimeUTC],
-    (error) => {
-      if (error) {
-        throw error;
-      }
-      console.log("Data saved in DB !");
-    }
-  );
-}
-
 // Save incoming tracking data into TrackData table
 const autherizeWebsite = async (host, writeKey) => {
   const response = await pool.query(
-    "SELECT DISTINCT website_name FROM AllowedWebsites WHERE website_name=$1 AND write_key=$2",
+    `SELECT DISTINCT website_name FROM AllowedWebsites_${writeKey} WHERE website_name=$1 AND write_key=$2`,
     [host, writeKey]
   );
   //console.log(response.rows);
@@ -85,7 +50,8 @@ const autherizeWebsite = async (host, writeKey) => {
 };
 
 const ipLookUp = async (ip) => {
-  const locationData = axios
+  if(ip!==null || ip!==undefined) {
+    const locationData = axios
     .get(`https://ipinfo.io/${ip}?token=${process.env.IP_INFO_API_TOKEN}`)
     .then((response) => {
       let fetchedData = response.data;
@@ -94,13 +60,14 @@ const ipLookUp = async (ip) => {
     .catch((error) => {
       console.log(error);
     });
-  return locationData;
+    return locationData;
+  }
 };
 
 // check and return location data from db for a specific user
 const checkLocationHistory = async (user_id, device_id, write_key) => {
   const storedLocationData = await pool.query(
-    "SELECT DISTINCT properties ->> 'city' as city, properties ->> 'region' as region, properties ->> 'country' as country, timestamp FROM fusion_event WHERE write_key= $1 AND properties ->> 'user_id' = $2 AND properties ->> 'device_id' = $3 AND properties ->> 'city' IS NOT NULL AND properties ->> 'country' IS NOT NULL ORDER BY city, region, country, timestamp DESC limit 1",
+    `SELECT DISTINCT properties ->> 'city' as city, properties ->> 'region' as region, properties ->> 'country' as country, timestamp FROM fusion_event_${write_key} WHERE write_key= $1 AND properties ->> 'user_id' = $2 AND properties ->> 'device_id' = $3 AND properties ->> 'city' IS NOT NULL AND properties ->> 'country' IS NOT NULL ORDER BY city, region, country, timestamp DESC limit 1`,
     [write_key, user_id, device_id]
   );
   return storedLocationData.rows;
@@ -170,37 +137,89 @@ const saveEventData = async (data) => {
     console.log("autherized");
 
     LocalDatetime = timestampToDateTime(timestamp);
-    dateTimeUTC = moment(LocalDatetime).utc().format("YYYY-MM-DD HH:mm:ss");
+    dateTimeUTC = moment(new Date(LocalDatetime)).utc().format();
 
     //Log autherized query data
     //console.log(data);
 
-    // Get new propeties with user location data added
-    properties = await addGeoDataToUserPropeties(
-      parsedEventProperties,
-      user_id,
-      device_id,
-      user_ip,
-      writeKey
-    );
+    await axios.get(planURL + `plans/getEventStatusLimit/${writeKey}/${writeKey}/`).then( async (res) => {
 
-    //Insert user data into db (event table)
-    pool.query(
-      "INSERT INTO fusion_event (event, properties, write_key, timestamp) VALUES ($1, $2, $3, $4)",
-      [event, properties, writeKey, dateTimeUTC],
-      (error) => {
-        if (error) {
-          throw error;
-        }
-        console.log("Data saved in DB !");
+      statusText = res.data;
+
+      if(statusText === 'OK' && parsedEventProperties.user_id && parsedEventProperties.device_id) {
+        // Get new propeties with user location data added
+        axios.post(planURL + `plans/registerEvent/${writeKey}/${writeKey}/`);
+
+        if(user_ip) {
+          properties = await addGeoDataToUserPropeties(
+            parsedEventProperties,
+            user_id,
+            device_id,
+            user_ip,
+            writeKey
+          );
+        }        
+        //Insert user data into db (event table)
+        pool.query(
+          `INSERT INTO fusion_event_${writeKey} (event, properties, write_key, timestamp) VALUES ($1, $2, $3, $4)`,
+          [event, properties, writeKey, dateTimeUTC],
+          (error) => {
+            if (error) {
+              throw error;
+            }
+            console.log("Data saved in DB !");
+          }
+        );
+
+        // save user data in db(user table)
+        await saveNewUser(user_id, device_id, properties, dateTimeUTC, writeKey);
+      } else {
+        console.log('Quota over')
       }
-    );
-
-    // save user data in db(user table)
-    await saveNewUser(user_id, device_id, properties, dateTimeUTC, writeKey);
+    })
   } else {
     console.log("Not autherized");
   }
+};
+
+const saveRecording = async (
+  recording,
+  sessionId,
+  time
+) => {
+  recording = JSON.parse(recording);
+
+  if(time === 0) {
+    try {
+      await pool.query(
+        `UPDATE SESSION_RECORDING SET recording= array_cat(recording, $1) where sessionid='${sessionId}'`,
+        [recording]
+      )
+    } catch (ex) {
+      console.log(ex);
+    }
+  } else {
+    try {
+      await pool.query(
+        `UPDATE SESSION_RECORDING SET recording= array_append(recording, $1) where sessionid='${sessionId}'`,
+        [recording]
+      )
+    } catch (ex) {
+      console.log(ex);
+    }
+  }
+}
+
+//create new session
+const createNewRecordingInstance = async (query) => {
+
+  LocalDatetime = timestampToDateTime(query.created_at);
+  dateTimeUTC = moment(new Date(LocalDatetime)).utc().format();
+  //Insert data into db
+  await pool.query(
+    `INSERT INTO SESSION_RECORDING VALUES ($1, '{}', $2, $3, $4)`,
+    [query.sessionId, JSON.parse(query.properties), query.write_key, dateTimeUTC]
+  );
 };
 
 //check if user exists else add new user data
@@ -215,16 +234,17 @@ const saveNewUser = async (
     is_identified = "false",
     user_ids = `{"${user_id}"}`;
 
-  //Insert data into db
-  pool.query(
-    `INSERT INTO fusion_user (uuid, properties, user_ids, is_identified, created_at, write_key) SELECT '${uuid}', '${properties}', '${user_ids}', '${is_identified}', '${created_at}', '${write_key}' WHERE NOT EXISTS (SELECT * FROM fusion_user WHERE '${user_id}' = ANY(user_ids) AND properties ->>'device_id' = '${device_id}' AND properties ->>'user_id' = '${user_id}' AND write_key = '${write_key}')`,
-    (error) => {
-      if (error) {
-        throw error;
+  if(user_ids!==null || user_ids!==undefined) {
+    pool.query(
+      `INSERT INTO fusion_user_${write_key} (uuid, properties, user_ids, is_identified, created_at, write_key) SELECT '${uuid}', '${properties}', '${user_ids}', '${is_identified}', '${created_at}', '${write_key}' WHERE NOT EXISTS (SELECT * FROM fusion_user_${write_key} WHERE '${user_id}' = ANY(user_ids) AND properties ->>'device_id' = '${device_id}' AND properties ->>'user_id' = '${user_id}' AND write_key = '${write_key}')`,
+      (error) => {
+        if (error) {
+          console.log('error', error);
+        }
+        console.log("user saved !");
       }
-      console.log("user saved !");
-    }
-  );
+    );
+  }
 };
 
 //check if user exists else add new user data (used by fusion.identify() js library)
@@ -243,7 +263,7 @@ const identifyUser = async (userData) => {
 
   //Insert data into db
   const prevDataForThisUUID = await pool.query(
-    `SELECT properties, user_ids, created_at FROM fusion_user WHERE uuid= $1 AND $2 != ANY(user_ids) AND write_key= $3 ORDER BY created_at DESC`,
+    `SELECT properties, user_ids, created_at FROM fusion_user_${writeKey} WHERE uuid= $1 AND $2 != ANY(user_ids) AND write_key= $3 ORDER BY created_at DESC`,
     [uuid, user_id, writeKey]
   );
 
@@ -252,7 +272,7 @@ const identifyUser = async (userData) => {
     // here use previously available properties and merge all userIds into one array
     //Get previously saved user info with the same uuid
     const prevDataAsIdentifiedUser = await pool.query(
-      `SELECT uuid, properties, user_ids, created_at FROM fusion_user WHERE uuid=$1 AND write_key= $2 ORDER BY created_at DESC limit 1`,
+      `SELECT uuid, properties, user_ids, created_at FROM fusion_user_${writeKey} WHERE uuid=$1 AND write_key= $2 ORDER BY created_at DESC limit 1`,
       [uuid, writeKey]
     );
     console.log(prevDataAsIdentifiedUser.rows[0]);
@@ -287,7 +307,7 @@ const identifyUser = async (userData) => {
     // creetae a all new entry
     //look for anonymously added userData with this user_id and device_id
     const prevDataAsAnonymousUser = await pool.query(
-      `SELECT uuid, properties, user_ids, created_at FROM fusion_user WHERE properties ->> 'user_id' = $1 AND properties ->> 'device_id' = $2 AND write_key= $3 ORDER BY created_at DESC limit 1`,
+      `SELECT uuid, properties, user_ids, created_at FROM fusion_user_${writeKey} WHERE properties ->> 'user_id' = $1 AND properties ->> 'device_id' = $2 AND write_key= $3 ORDER BY created_at DESC limit 1`,
       [user_id, device_id, writeKey]
     );
 
@@ -312,7 +332,7 @@ const identifyUser = async (userData) => {
 
     //Insert data into db with user defined UUID
     await pool.query(
-      `INSERT INTO fusion_user (uuid, properties, user_ids, is_identified, created_at, write_key) VALUES ('${uuid}', '${previousProperties}', '${previousUserIds}', '${isIdentified}', '${previousCreatedAt}', '${writeKey}')`
+      `INSERT INTO fusion_user_${writeKey} (uuid, properties, user_ids, is_identified, created_at, write_key) VALUES ('${uuid}', '${previousProperties}', '${previousUserIds}', '${isIdentified}', '${previousCreatedAt}', '${writeKey}')`
     ),
       (error) => {
         if (error) {
@@ -322,7 +342,7 @@ const identifyUser = async (userData) => {
       };
 
     // delete anonymous user data
-    await pool.query(`DELETE FROM fusion_user WHERE uuid=$1 AND write_key=$2`, [
+    await pool.query(`DELETE FROM fusion_user_${writeKey} WHERE uuid=$1 AND write_key=$2`, [
       uuid,
       writeKey,
     ]),
@@ -338,6 +358,7 @@ const identifyUser = async (userData) => {
 module.exports = {
   saveEventData,
   autherizeWebsite,
-  createSystemTables,
   identifyUser,
+  saveRecording,
+  createNewRecordingInstance
 };

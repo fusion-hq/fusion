@@ -33,19 +33,16 @@ const GIF = Buffer.from(
 
 app.use(cors({ origin: "*" }));
 app.use(cookieParser());
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-
-console.log("---------------------------------------------");
-db.createSystemTables();
+app.use(express.json({limit: '100mb'}));
+app.use(express.urlencoded({limit: '100mb', extended: false}));
 
 //route listens for incoming event data
-app.get("/event", (req, res) => {
-  const { query } = url.parse(req.url, true);
+app.post("/event", (req, res) => {
+  const query  = req.body;
   query.insertId = v4();
   query.received_at = moment.utc().format("YYYY-MM-DD HH:mm:ss");
-  console.log(query);
-  console.log("---------------------------------------------");
+  // console.log(query);
+  // console.log("---------------------------------------------");
 
   res.setHeader("cache-control", "private, no-cache, no-store, max-age=0");
   res.setHeader("access-control-allow-origin", "*");
@@ -55,13 +52,40 @@ app.get("/event", (req, res) => {
   db.saveEventData(query);
 });
 
+app.post("/session", (req, res) => {
+  const {recording, sessionId, time} = req.body
+  
+  res.setHeader("cache-control", "private, no-cache, no-store, max-age=0");
+  res.setHeader("access-control-allow-origin", "*");
+  res.setHeader("content-length", GIF.length);
+  res.setHeader("content-type", "image/gif");
+  res.send(GIF);
+
+  db.saveRecording(recording, sessionId, time);
+})
+
+app.get("/createSession", (req, res) => {
+  const { query } = url.parse(req.url, true);
+  query.insertId = v4();
+  query.received_at = moment.utc().format("YYYY-MM-DD HH:mm:ss");
+  // console.log(query);
+  // console.log("---------------------------------------------");
+
+  res.setHeader("cache-control", "private, no-cache, no-store, max-age=0");
+  res.setHeader("access-control-allow-origin", "*");
+  res.setHeader("content-length", GIF.length);
+  res.setHeader("content-type", "image/gif");
+  res.send(GIF);
+  db.createNewRecordingInstance(query);
+});
+
 //route listens for incoming event data
 app.get("/user", (req, res) => {
   const { query } = url.parse(req.url, true);
   query.insertId = v4();
   query.received_at = moment.utc().format("YYYY-MM-DD HH:mm:ss");
-  console.log(query);
-  console.log("---------------------------------------------");
+  // console.log(query);
+  // console.log("---------------------------------------------");
 
   res.setHeader("cache-control", "private, no-cache, no-store, max-age=0");
   res.setHeader("access-control-allow-origin", "*");
@@ -71,6 +95,6 @@ app.get("/user", (req, res) => {
   db.identifyUser(query);
 });
 
-app.listen(process.env.SERVER_PORT || 3000, () => {
+app.listen(process.env.PORT || 3000, () => {
   console.log(`fusion event-collector listening on port 3000...`);
 });
