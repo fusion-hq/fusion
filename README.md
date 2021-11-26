@@ -1,7 +1,7 @@
 <p align="center">
   <img src="https://raw.githubusercontent.com/fusion-hq/fusion/main/doc/fusion-logo.png" alt="fusion-logo" width="450" />
 
-  <p align="center">All-in-one user behaviour analytics and engagement platform.</p>
+  <p align="center">Full-Stack user behaviour analytics and engagement platform.</p>
 </p>
 
 ---
