@@ -2,15 +2,10 @@ version: '3.7'
 
 services:
 
-  sample:
-    container_name: frontend:dev
+  sample-prod:
+    container_name: frontend-prod
     build:
       context: .
-      dockerfile: Dockerfile
-    volumes:
-      - '.:/app'
-      - '/app/node_modules'
+      dockerfile: Dockerfile.prod
     ports:
-      - 4040:4040
-    environment:
-      - CHOKIDAR_USEPOLLING=true
+      - '1337:80'
