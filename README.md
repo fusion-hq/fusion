@@ -18,6 +18,10 @@
 <div>
   <img src="https://raw.githubusercontent.com/fusion-hq/fusion/main/doc/Desktop%20-%201.png" width="100%" alt="fusion dashboard"/>
 <div>
+<div>
+  <img src="https://raw.githubusercontent.com/fusion-hq/fusion/main/doc/Events.png" width="100%" alt="fusion dashboard"/>
+<div>  
+  
 
 Fusion is an open-source lightweight user behaviour analytics and engagement pltaform.
 
