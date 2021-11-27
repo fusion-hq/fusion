@@ -20,7 +20,7 @@ export default function Setup() {
   const [writeKey] = useContext(WriteKeyContext);
   const [allowedWebsiteList, setAllowedWebsiteList] = useState([]);
 
-  var apiServer = "https://service.fusionhq.co";
+  var apiServer = process.env.REACT_APP_EVENT_COLLECTOR;
 
   var trackingCode = `<!-- Fusion Analytics Tracking Script-->
   <script src="https://app.fusionhq.co/session-lib.js"></script>
