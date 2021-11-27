@@ -5,7 +5,7 @@ var stopfn,
   recordingStart = !0,
   sessionRecordingEvents = [],
   firstBitSent = !1,
-  api = "https://service.fusionhq.co/";
+  api = "https://localhost:3000/";
 function generateUserId() {
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (e) {
     var t = (16 * Math.random()) | 0;
@@ -18,8 +18,8 @@ class Fusion {
     const e = "undefined" != typeof window ? window : {},
       t = e.navigator || { userAgent: "" },
       i = e.document || {},
-      s = t.userAgent;
-    function r() {
+      r = t.userAgent;
+    function s() {
       return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
         /[xy]/g,
         function (e) {
@@ -79,16 +79,16 @@ class Fusion {
         ? i.cookie.match("(^|;)\\s*" + e + "\\s*=\\s*([^;]+)").pop()
         : "";
     }),
-      (this.createCookie = function (e, t, s) {
-        if (s) {
-          var r = new Date();
-          r.setTime(r.getTime() + 24 * s * 60 * 60 * 1e3);
-          var o = "; expires=" + r.toGMTString();
+      (this.createCookie = function (e, t, r) {
+        if (r) {
+          var s = new Date();
+          s.setTime(s.getTime() + 24 * r * 60 * 60 * 1e3);
+          var o = "; expires=" + s.toGMTString();
         } else o = "";
         let n = window.location.hostname;
         i.cookie = e + "=" + t + o + "; path=/; domain=" + n;
       }),
-      (this.os = /Windows/i.test((a = s))
+      (this.os = /Windows/i.test((a = r))
         ? /Phone/.test(a) || /WPDesktop/.test(a)
           ? "Windows Phone"
           : "Windows"
@@ -105,10 +105,10 @@ class Fusion {
         : /CrOS/.test(a)
         ? "Chrome OS"
         : ""),
-      (this.browser = n(s, t.vendor, window.opera)),
+      (this.browser = n(r, t.vendor, window.opera)),
       localStorage.setItem("browser", this.browser),
       (this.browserVersion = (function (e, t, i) {
-        var s = {
+        var r = {
           "Internet Explorer Mobile": /rv:(\d+(\.\d+)?)/,
           "Microsoft Edge": /Edge?\/(\d+(\.\d+)?)/,
           Chrome: /Chrome\/(\d+(\.\d+)?)/,
@@ -126,10 +126,10 @@ class Fusion {
           "Internet Explorer": /(rv:|MSIE )(\d+(\.\d+)?)/,
           Mozilla: /rv:(\d+(\.\d+)?)/,
         }[n(e, t, i)];
-        if (void 0 === s) return null;
-        var r = e.match(s);
-        return r ? parseFloat(r[r.length - 2]) : null;
-      })(s, t.vendor, window.opera)),
+        if (void 0 === r) return null;
+        var s = e.match(r);
+        return s ? parseFloat(s[s.length - 2]) : null;
+      })(r, t.vendor, window.opera)),
       (this.deviceType = (function (e) {
         const t = (function (e) {
           return /Windows Phone/i.test(e) || /WPDesktop/.test(e)
@@ -153,7 +153,7 @@ class Fusion {
           : t
           ? "Mobile"
           : "Desktop";
-      })(s));
+      })(r));
     var d,
       h,
       c,
@@ -212,25 +212,23 @@ class Fusion {
         (savedPropertiesSnapshot = this.userInfoCookie),
         !sessionStorage.getItem("sessionId"))
       ) {
-        const e = new XMLHttpRequest();
-        sessionStorage.setItem("sessionId", r());
-        let t = JSON.stringify(savedPropertiesSnapshot);
-        e.open(
-          "GET",
-          `${api}createSession?sessionId=${sessionStorage.getItem(
-            "sessionId"
-          )}&properties=${t}&write_key=${
-            this.apiKey
-          }&created_at=${new Date().getTime()}`
-        ),
-          e.send();
+        let e = s(),
+          i = JSON.stringify(savedPropertiesSnapshot),
+          r = new URLSearchParams({
+            sessionId: e,
+            properties: i,
+            created_at: new Date().getTime(),
+            write_key: this.apiKey,
+          });
+        t.sendBeacon(`${api}createSession`, r),
+          sessionStorage.setItem("sessionId", e);
       }
     } else {
-      let e = r(),
-        t = r();
+      let e = s(),
+        r = s();
       (this.userInfoCookieTemplate.user_id = e),
-        (this.userInfoCookieTemplate.device_id = t);
-      const s =
+        (this.userInfoCookieTemplate.device_id = r);
+      const o =
         ((d = "utm_source utm_medium utm_campaign utm_content utm_term".split(
           " "
         )),
@@ -242,23 +240,23 @@ class Fusion {
             var i = new RegExp("[\\?&]" + t + "=([^&#]*)").exec(e);
             if (null === i || (i && "string" != typeof i[1] && i[1].length))
               return "";
-            var s = i[1];
+            var r = i[1];
             try {
-              s = decodeURIComponent(s);
+              r = decodeURIComponent(r);
             } catch (e) {
               console.error(
-                "Skiped decoding for corrupted query parameter: " + s
+                "Skiped decoding for corrupted query parameter: " + r
               );
             }
-            return s.replace(/\+/g, " ");
+            return r.replace(/\+/g, " ");
           })(i.URL, e)).length && (h[e] = `${c}`);
         }),
         h);
-      for (const e in s) this.userInfoCookieTemplate[e] = `${s[e]}`;
-      let o = JSON.stringify(this.userInfoCookieTemplate);
+      for (const e in o) this.userInfoCookieTemplate[e] = `${o[e]}`;
+      let n = JSON.stringify(this.userInfoCookieTemplate);
       if (
-        (this.createCookie(`fusion_${this.apiKey}`, encodeURIComponent(o), 730),
-        localStorage.setItem(`fusion_${this.apiKey}`, encodeURIComponent(o)),
+        (this.createCookie(`fusion_${this.apiKey}`, encodeURIComponent(n), 730),
+        localStorage.setItem(`fusion_${this.apiKey}`, encodeURIComponent(n)),
         (this.userInfoCookieTemplate.website = window.location.host),
         (this.userInfoCookieTemplate.page = window.location.pathname),
         (this.userInfoCookieTemplate.browser = this.browser),
@@ -278,18 +276,16 @@ class Fusion {
         (savedPropertiesSnapshot = this.userInfoCookieTemplate),
         !sessionStorage.getItem("sessionId"))
       ) {
-        const e = new XMLHttpRequest();
-        sessionStorage.setItem("sessionId", r());
-        let t = JSON.stringify(savedPropertiesSnapshot);
-        e.open(
-          "GET",
-          `${api}createSession?sessionId=${sessionStorage.getItem(
-            "sessionId"
-          )}&properties=${t}&write_key=${
-            this.apiKey
-          }&created_at=${new Date().getTime()}`
-        ),
-          e.send();
+        let e = s(),
+          i = JSON.stringify(savedPropertiesSnapshot),
+          r = new URLSearchParams({
+            sessionId: e,
+            properties: i,
+            created_at: new Date().getTime(),
+            write_key: this.apiKey,
+          });
+        t.sendBeacon(`${api}createSession`, r),
+          sessionStorage.setItem("sessionId", e);
       }
     }
     fetch("https://api64.ipify.org?format=json")
@@ -450,11 +446,11 @@ class Fusion {
       },
     });
   }
-  init(e, t, i, s) {
+  init(e, t, i, r) {
     (this.apiHost = t),
       (this.apiKey = e),
       this.setup(),
-      !0 === s &&
+      !0 === r &&
         (document.addEventListener(
           "startRecording",
           (e) => {
@@ -470,15 +466,15 @@ class Fusion {
           if ((console.log(t, i), t && "fusion-no-capture" !== t.className)) {
             let e = t.innerText,
               i = t.id,
-              s = t.className,
-              r = e || i || s || "unnamed";
-            this.track(`${r} button clicked`, "");
+              r = t.className,
+              s = e || i || r || "unnamed";
+            this.track(`${s} button clicked`, "");
           } else if (i && "fusion-no-capture" !== i.className) {
             let e = i.innerText,
               t = i.id,
-              s = i.className,
-              r = e || t || s || "unnamed";
-            this.track(`${r} link clicked`, "");
+              r = i.className,
+              s = e || t || r || "unnamed";
+            this.track(`${s} link clicked`, "");
           }
         }),
         document.addEventListener("change", (e) => {
@@ -488,11 +484,11 @@ class Fusion {
           if (t && "fusion-no-capture" !== t.className && t.value.length > 0) {
             let e = "",
               i = t.id,
-              s = t.className;
+              r = t.className;
             void 0 !== t.attributes.placeholder &&
               (e = t.attributes.placeholder.value);
-            let r = e || i || s || "unnamed";
-            this.track(`${r} filled`, "");
+            let s = e || i || r || "unnamed";
+            this.track(`${s} filled`, "");
           }
         }),
         document.addEventListener("click", (e) => {
@@ -500,9 +496,9 @@ class Fusion {
           if (t && "fusion-no-capture" !== t.className) {
             let e = t.value,
               i = t.id,
-              s = t.className,
-              r = e || i || s || "unnamed";
-            this.track(`${r} checked`, "");
+              r = t.className,
+              s = e || i || r || "unnamed";
+            this.track(`${s} checked`, "");
           }
         }),
         document.addEventListener("click", (e) => {
@@ -510,9 +506,9 @@ class Fusion {
           if (t && "fusion-no-capture" !== t.className) {
             let e = t.value,
               i = t.id,
-              s = t.className,
-              r = e || i || s || "unnamed";
-            this.track(`${r} checked`, "");
+              r = t.className,
+              s = e || i || r || "unnamed";
+            this.track(`${s} checked`, "");
           }
         }),
         document.addEventListener("change", (e) => {
@@ -520,9 +516,9 @@ class Fusion {
           if (t && "fusion-no-capture" !== t.className) {
             let e = t.value,
               i = t.id,
-              s = t.className,
-              r = e || i || s || "unnamed";
-            this.track(`${r} selected`, "");
+              r = t.className,
+              s = e || i || r || "unnamed";
+            this.track(`${s} selected`, "");
           }
         }),
         document.addEventListener("submit", (e) => {
@@ -530,11 +526,11 @@ class Fusion {
           if (t && "fusion-no-capture" !== t.className) {
             let e,
               i,
-              s = t.id,
-              r = t.className;
+              r = t.id,
+              s = t.className;
             void 0 !== t.attributes.name && (e = t.attributes.name.value),
               void 0 !== t.attributes.action && (i = t.attributes.action.value);
-            let o = e || i || s || r || "unnamed";
+            let o = e || i || r || s || "unnamed";
             this.track(`${o} form submitted`, "");
           }
         }),
@@ -543,9 +539,9 @@ class Fusion {
           if (t && "fusion-no-capture" !== t.className) {
             let e = t.value,
               i = t.id,
-              s = t.className,
-              r = e || i || s || "unnamed";
-            this.track(`${r} input clicked`, "");
+              r = t.className,
+              s = e || i || r || "unnamed";
+            this.track(`${s} input clicked`, "");
           }
         }));
   }
@@ -555,9 +551,9 @@ function getCookie(e) {
   let t = e + "=",
     i = decodeURIComponent(document.cookie).split(";");
   for (let e = 0; e < i.length; e++) {
-    let s = i[e];
-    for (; " " == s.charAt(0); ) s = s.substring(1);
-    if (0 == s.indexOf(t)) return s.substring(t.length, s.length);
+    let r = i[e];
+    for (; " " == r.charAt(0); ) r = r.substring(1);
+    if (0 == r.indexOf(t)) return r.substring(t.length, r.length);
   }
   return "";
 }
