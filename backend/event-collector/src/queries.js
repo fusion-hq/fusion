@@ -9,8 +9,6 @@ require("dotenv").config();
 const moment = require("moment");
 const axios = require("axios");
 const { v4 } = require("uuid");
-const planURL = process.env.USER_API_URL
-
 require("dotenv").config();
 
 // Connect to the postgres DB
@@ -139,45 +137,31 @@ const saveEventData = async (data) => {
     LocalDatetime = timestampToDateTime(timestamp);
     dateTimeUTC = moment(new Date(LocalDatetime)).utc().format();
 
-    //Log autherized query data
-    //console.log(data);
-
-    await axios.get(planURL + `plans/getEventStatusLimit/${writeKey}/${writeKey}/`).then( async (res) => {
-
-      statusText = res.data;
-
-      if(statusText === 'OK' && parsedEventProperties.user_id && parsedEventProperties.device_id) {
-        // Get new propeties with user location data added
-        axios.post(planURL + `plans/registerEvent/${writeKey}/${writeKey}/`);
-
-        if(user_ip) {
-          properties = await addGeoDataToUserPropeties(
-            parsedEventProperties,
-            user_id,
-            device_id,
-            user_ip,
-            writeKey
-          );
-        }        
-        //Insert user data into db (event table)
-        pool.query(
-          `INSERT INTO fusion_event_${writeKey} (event, properties, write_key, timestamp) VALUES ($1, $2, $3, $4)`,
-          [event, properties, writeKey, dateTimeUTC],
-          (error) => {
-            if (error) {
-              throw error;
-            }
-            console.log("Data saved in DB !");
-          }
-        );
-
-        // save user data in db(user table)
-        await saveNewUser(user_id, device_id, properties, dateTimeUTC, writeKey);
-      } else {
-        console.log('Quota over')
+    if(user_ip) {
+      properties = await addGeoDataToUserPropeties(
+        parsedEventProperties,
+        user_id,
+        device_id,
+        user_ip,
+        writeKey
+      );
+    }        
+    //Insert user data into db (event table)
+    pool.query(
+      `INSERT INTO fusion_event_${writeKey} (event, properties, write_key, timestamp) VALUES ($1, $2, $3, $4)`,
+      [event, properties, writeKey, dateTimeUTC],
+      (error) => {
+        if (error) {
+          throw error;
+        }
+        console.log("Data saved in DB !");
       }
-    })
-  } else {
+    );
+
+    // save user data in db(user table)
+    await saveNewUser(user_id, device_id, properties, dateTimeUTC, writeKey);
+  }
+  else {
     console.log("Not autherized");
   }
 };
