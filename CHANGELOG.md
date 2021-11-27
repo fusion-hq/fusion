@@ -24,7 +24,6 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Added Funnels
 - Added Session Recording (Version 1.0.0)
 - Added Cohorts
-- Added Email Campaigns
 
 ## [1.0.0] - 2021-09-14
 
