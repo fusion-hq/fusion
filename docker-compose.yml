@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  event-collector:
+    container_name: event-collector-prod
+    build:
+      dockerfile: Dockerfile.prod
+      context: "./backend/event-collector"
+    volumes:
+      - /app/node_modules
+      - ./backend/event-collector:/app
+    ports:
+      - '3000:3000'
+  
+  query-collector:
+    container_name: query-service-prod
+    build:
+      dockerfile: Dockerfile.prod
+      context: "./backend/query-service"
+    volumes:
+      - /app/node_modules
+      - ./backend/query-service:/app
+    ports:
+      - '6060:6060'
+
+  fusion-app:
+    container_name: frontend-prod
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    ports:
+      - '1337:80'
