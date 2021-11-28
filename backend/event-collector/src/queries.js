@@ -197,13 +197,18 @@ const saveRecording = async (
 //create new session
 const createNewRecordingInstance = async (query) => {
 
-  LocalDatetime = timestampToDateTime(query.created_at);
-  dateTimeUTC = moment(new Date(LocalDatetime)).utc().format();
-  //Insert data into db
-  await pool.query(
-    `INSERT INTO SESSION_RECORDING VALUES ($1, '{}', $2, $3, $4)`,
-    [query.sessionId, JSON.parse(query.properties), query.write_key, dateTimeUTC]
-  );
+  let host = JSON.parse(query.properties).website
+  let allowedWebsites = await autherizeWebsite(host, query.write_key);
+
+  if (typeof allowedWebsites !== "undefined" && allowedWebsites.length > 0) {
+    LocalDatetime = timestampToDateTime(query.created_at);
+    dateTimeUTC = moment(new Date(LocalDatetime)).utc().format();
+    //Insert data into db
+    await pool.query(
+      `INSERT INTO SESSION_RECORDING VALUES ($1, '{}', $2, $3, $4)`,
+      [query.sessionId, JSON.parse(query.properties), query.write_key, dateTimeUTC]
+    );
+  }
 };
 
 //check if user exists else add new user data
