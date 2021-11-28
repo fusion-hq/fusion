@@ -14,17 +14,7 @@
 </p>
   
 <img src="https://raw.githubusercontent.com/fusion-hq/fusion/main/doc/fusion-dashboard-graphs.png" width="100%" alt="fusion dashboard"/>
-
-<div>
-  <img src="https://raw.githubusercontent.com/fusion-hq/fusion/main/doc/Desktop%20-%201.png" width="100%" alt="fusion dashboard"/>
-<div>
-<div>
-  <img src="https://raw.githubusercontent.com/fusion-hq/fusion/main/doc/Events.png" width="100%" alt="fusion dashboard"/>
-<div>  
-<div>
-  <img src="https://raw.githubusercontent.com/fusion-hq/fusion/main/doc/Session%20Recording.png" width="100%" alt="fusion dashboard"/>
-<div>
-
+  
 **Fusion is an open-source lightweight user behaviour analytics and engagement pltaform.**
 
 Its built upon a simplified low-code mixpanel like analytics engine with visual analytics, push-notification and email/micro-surveys.
@@ -48,6 +38,16 @@ Fusion shows how your users interact with your web based products eg: page-views
 - **Real-time engagement suite** Email Campaigns.
 
 <br />
+
+## Self Hosting Commands
+- Build Docker Services and make up using docker compose.
+```
+  docker-compose up -d --build
+```
+- Bring the container down
+```
+  docker-compose down
+```
 
 ## 📚 Documentation
 
