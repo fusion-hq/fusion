@@ -70,4 +70,4 @@ please share your ideas, questions and feedback, on our [Github Discussions](htt
   <img src="https://contrib.rocks/image?repo=fusion-hq/fusion" />
 </a>
 
-_Fusion_ - Released under the MIT License.
+_Fusion_ - Released under the Fair Code License.
