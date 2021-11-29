@@ -7,7 +7,6 @@
 ---
 
 <p align="center">
-  <img src="https://img.shields.io/github/license/fusion-hq/fusion" alt="License">
   <img src="https://img.shields.io/github/commit-activity/m/fusion-hq/fusion" alt="Commits-per-month">
   <a href="https://discord.gg/VWeZanfhrA"><img src="https://img.shields.io/discord/760239712026755072" alt="Discord"></a>
  <a href="https://fusionhq.co/"><img src="https://img.shields.io/badge/View-Website-blue" alt="Discord"></a>
