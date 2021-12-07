@@ -36,7 +36,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Tracking Engine ( Tracking Script to be injected to collect DOM interactions )
 - Insights ( No-Code SQL for lookups )
 
-### Changed
+### Changes
 
 - Allow for an unlimited number of Fusion instances in production mode
 - License changes to reflect the above
