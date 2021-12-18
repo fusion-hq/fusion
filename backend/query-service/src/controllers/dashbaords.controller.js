@@ -2,14 +2,12 @@ const { Pool } = require("pg");
 require("dotenv").config();
 
 const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB,
-  password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT,
-  ssl: { rejectUnauthorized: false }
+  user: process.env.POSTGRES_USER,
+  host: process.env.POSTGRES_HOST,
+  database: process.env.POSTGRES_DB,
+  password: process.env.POSTGRES_PASSWORD ,
+  port: process.env.POSTGRES_PORT,
 });
-
 //Return all available dashboards in asc order for logged in user
 const getAllDashboards = async (req, res) => {
   const { writeKey } = await req.query;

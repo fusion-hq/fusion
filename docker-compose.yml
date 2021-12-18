@@ -3,6 +3,9 @@ version: '3.8'
 services:
   event-collector:
     container_name: event-collector-prod
+    env_file:
+      - database_stage.env
+      - .env
     build:
       dockerfile: Dockerfile.prod
       context: "./backend/event-collector"
@@ -14,6 +17,9 @@ services:
   
   query-collector:
     container_name: query-service-prod
+    env_file:
+      - database_stage.env
+      - .env
     build:
       dockerfile: Dockerfile.prod
       context: "./backend/query-service"
@@ -25,8 +31,22 @@ services:
 
   fusion-app:
     container_name: frontend-prod
+    env_file:
+      - .env
     build:
       context: ./frontend
       dockerfile: Dockerfile.prod
     ports:
       - '1337:80'
+
+  database:
+    image: "postgres" # use latest official postgres version
+    ports:
+      - "5432:5432"
+    env_file:
+      - database_stage.env # configure postgres
+    volumes:
+      - database-data:/var/lib/postgresql/data/ # persist data even if container shuts down
+
+volumes:
+  database-data: # named volumes can be managed easier using docker-compose

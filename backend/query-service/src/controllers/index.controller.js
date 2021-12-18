@@ -2,17 +2,21 @@ const { Pool } = require("pg");
 require("dotenv").config();
 
 const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB,
-  password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT,
-  ssl: { rejectUnauthorized: false }
+  user: process.env.POSTGRES_USER,
+  host: process.env.POSTGRES_HOST,
+  database: process.env.POSTGRES_DB,
+  password: process.env.POSTGRES_PASSWORD ,
+  port: process.env.POSTGRES_PORT,
 });
 
 //Checks ConsoleUser table if user_id exists otherwise inserts it
 const saveNewConsoleUserId = async (req, res) => {
   const { userId } = await req.query;
+
+  //create a console user if not exists
+  await pool.query(
+    "CREATE TABLE IF NOT EXISTS ConsoleUser (api_key VARCHAR ( 64 ));"
+  )
 
   // insert in console user
   await pool.query(
@@ -85,7 +89,19 @@ const saveNewConsoleUserId = async (req, res) => {
       created_at TIMESTAMPTZ DEFAULT Now() 
     )`
   );
-  res.status(200);
+
+  //session recording
+  await pool.query(
+    `CREATE TABLE IF NOT EXISTS SESSION_RECORDING (
+        sessionId VARCHAR,
+        recording json [],
+        properties json,
+        write_key VARCHAR,
+        timestamp TIMESTAMP
+    );`
+  )
+
+  res.status(200).json({"status": "table_created"});
 };
 
 // Return all allowed urls for that user from AllowedUrl Table

@@ -64,8 +64,8 @@ app.post("/session", (req, res) => {
   db.saveRecording(recording, sessionId, time);
 })
 
-app.get("/createSession", (req, res) => {
-  const { query } = url.parse(req.url, true);
+app.post("/createSession", (req, res) => {
+  const query = req.body
   query.insertId = v4();
   query.received_at = moment.utc().format("YYYY-MM-DD HH:mm:ss");
   // console.log(query);
