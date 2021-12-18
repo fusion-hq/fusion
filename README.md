@@ -55,7 +55,7 @@ Fusion shows how your users interact with your web based products eg: page-views
 ```
 - Make the docker containter up
 ```
-docker-compose -f docker-compose.yml -f docker-compose.staging.yml up
+  docker-compose -f docker-compose.yml -f docker-compose.staging.yml up
 ```
 
 ## 📚 Documentation
