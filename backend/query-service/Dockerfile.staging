@@ -1,0 +1,10 @@
+FROM node:14.18.1-alpine
+WORKDIR /app
+
+RUN npm install -g nodemon
+
+COPY package.json ./
+COPY package-lock.json ./
+COPY ./ ./
+RUN npm i
+CMD ["nodemon", "src/app.js"]

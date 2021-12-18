@@ -95,6 +95,10 @@ app.get("/user", (req, res) => {
   db.identifyUser(query);
 });
 
+app.get('/health-event-collector', (req, res) => {
+  res.json({"health": 'OK event collector'})
+})
+
 app.listen(process.env.PORT || 3000, () => {
   console.log(`fusion event-collector listening on port 3000...`);
 });

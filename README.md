@@ -48,6 +48,16 @@ Fusion shows how your users interact with your web based products eg: page-views
   docker-compose down
 ```
 
+## Development mode commands
+- Build the staging files
+```
+  docker-compose -f docker-compose.yml -f  docker-compose.staging.yml build
+```
+- Make the docker containter up
+```
+docker-compose -f docker-compose.yml -f docker-compose.staging.yml up
+```
+
 ## 📚 Documentation
 
 Coming soon... Please connect with us over discord and we will help you setup fusion.

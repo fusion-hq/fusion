@@ -7,9 +7,9 @@ services:
       - database_stage.env
       - .env
     environment:
-      - NODE_ENV=PRODUCTION
+      - NODE_ENV=STAGING
     build:
-      dockerfile: Dockerfile.prod
+      dockerfile: Dockerfile.staging
       context: "./backend/event-collector"
     volumes:
       - /app/node_modules
@@ -22,11 +22,11 @@ services:
     env_file:
       - database_stage.env
       - .env
-    environment:
-      - NODE_ENV=PRODUCTION
     build:
-      dockerfile: Dockerfile.prod
+      dockerfile: Dockerfile.staging
       context: "./backend/query-service"
+    environment:
+      - NODE_ENV=STAGING
     volumes:
       - /app/node_modules
       - ./backend/query-service:/app
@@ -37,16 +37,16 @@ services:
     container_name: frontend-prod
     build:
       context: ./frontend
-      dockerfile: Dockerfile.prod
+      dockerfile: Dockerfile.staging
     env_file:
       - .env
     environment:
-      - NODE_ENV=PRODUCTION
+      - NODE_ENV=STAGING
     volumes:
       - /app/node_modules
       - ./frontend:/app
     ports:
-      - '1337:80'
+      - '4040:4040'
 
   database:
     image: "postgres" # use latest official postgres version

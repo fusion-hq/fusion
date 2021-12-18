@@ -20,7 +20,7 @@ var jwtCheck = jwt({
 app.use(cors({ origin: "*" }));
 app.use(express.json({limit: '100mb'}));
 app.use(express.urlencoded({limit: '100mb', extended: false}));
-app.use(jwtCheck);
+app.use(jwtCheck.unless({path: ['/health']}));
 
 //routes
 app.use(require("./routes/index"));
@@ -30,6 +30,10 @@ app.use(require("./routes/dashboards"));
 app.use(require("./routes/users"));
 app.use(require("./routes/cohorts"));
 app.use(require("./routes/session"));
+
+app.get('/health-query-service', (req, res) => {
+  res.json({"health": 'OK'})
+})
 
 app.listen(process.env.PORT || 6060, () => {
   console.log(`Fusion API server listening...`);
