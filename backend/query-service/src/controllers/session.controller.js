@@ -3,13 +3,13 @@ require("dotenv").config();
 const {validateQueryParameters, calculateDateTime} = require('./events.controller')
 
 const pool = new Pool({
-  user: process.env.POSTGRES_USER,
-  host: process.env.POSTGRES_HOST,
-  database: process.env.POSTGRES_DB,
-  password: process.env.POSTGRES_PASSWORD ,
-  port: process.env.POSTGRES_PORT,
+  user: process.env.POSTGRES_USER || process.env.DB_USER_HOSTED,
+  host: process.env.POSTGRES_HOST || process.env.DB_HOST_HOSTED,
+  database: process.env.POSTGRES_DB || process.env.DB_HOSTED,
+  password: process.env.POSTGRES_PASSWORD || process.env.DB_PASSWORD_HOSTED,
+  port: process.env.POSTGRES_PORT || process.env.DB_PORT_HOSTED,
+  ssl: process.env.NODE_ENV === 'PRODUCTION' ? { rejectUnauthorized: false } : { rejectUnauthorized: true }
 });
-
 
 //Return laest event entries(with properties) from the table in descednding order
 const getAllRecordingsData = async (req, res) => {

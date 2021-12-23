@@ -6,6 +6,7 @@ services:
     env_file:
       - database_stage.env
       - .env
+      - db_hosted.env
     environment:
       - NODE_ENV=PRODUCTION
     build:
@@ -22,6 +23,7 @@ services:
     env_file:
       - database_stage.env
       - .env
+      - db_hosted.env
     environment:
       - NODE_ENV=PRODUCTION
     build:
