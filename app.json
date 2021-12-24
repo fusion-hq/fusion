@@ -1,5 +1,5 @@
 {
-    "name": "Fusio",
+    "name": "Fusion",
     "description": "An open source Product Analytics Tool",
     "repository": "https://github.com/fusion-hq/fusion",
     "keywords": ["react", "node", "analytics"],
@@ -7,6 +7,11 @@
       "SECRET_KEY_BASE": {
         "description": "A secret key for verifying the integrity of signed cookies.",
         "generator": "secret"
+      },
+      "IP_INFO_API_TOKEN": {
+        "description": "Your IP Info token",
+        "value": "xxxxxxxx",
+        "required": true
       },
       "REACT_APP_EVENT_COLLECTOR": {
         "description": "Backend event collector",
@@ -36,7 +41,27 @@
       },
       "REACT_APP_FRONTEND_URL": {
         "description": "Frontend App Url",
-        "required": false
+        "required": true
+      },
+      "DB_USER_HOSTED": {
+        "description": "DB USER",
+        "required": true
+      }, 
+      "DB_HOST_HOSTED": {
+        "description": "DB HOST",
+        "required": true
+      }, 
+      "DB_HOSTED": {
+        "description": "DB",
+        "required": true
+      }, 
+      "DB_PASSWORD_HOSTED": {
+        "description": "DB PASSWORD",
+        "required": true
+      },
+      "DB_PORT_HOSTED": {
+        "description": "DB PORT",
+        "required": true
       }
     },
     "formation": {
