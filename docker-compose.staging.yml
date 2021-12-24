@@ -4,7 +4,7 @@ services:
   event-collector:
     container_name: event-collector-prod
     env_file:
-      - database_stage.env
+      - database_local.env
       - .env
     environment:
       - NODE_ENV=STAGING
@@ -20,7 +20,7 @@ services:
   query-collector:
     container_name: query-service-prod
     env_file:
-      - database_stage.env
+      - database_local.env
       - .env
     build:
       dockerfile: Dockerfile.staging
@@ -53,7 +53,7 @@ services:
     ports:
       - "5432:5432"
     env_file:
-      - database_stage.env # configure postgres
+      - database_local.env # configure postgres
     volumes:
       - database-data:/var/lib/postgresql/data/ # persist data even if container shuts down
 

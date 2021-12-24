@@ -4,11 +4,9 @@ services:
   event-collector:
     container_name: event-collector-prod
     env_file:
-      - database_stage.env
+      - database_local.env
       - .env
       - db_hosted.env
-    environment:
-      - NODE_ENV=PRODUCTION
     build:
       dockerfile: Dockerfile.prod
       context: "./backend/event-collector"
@@ -21,11 +19,9 @@ services:
   query-collector:
     container_name: query-service-prod
     env_file:
-      - database_stage.env
+      - database_local.env
       - .env
       - db_hosted.env
-    environment:
-      - NODE_ENV=PRODUCTION
     build:
       dockerfile: Dockerfile.prod
       context: "./backend/query-service"
@@ -42,8 +38,6 @@ services:
       dockerfile: Dockerfile.prod
     env_file:
       - .env
-    environment:
-      - NODE_ENV=PRODUCTION
     volumes:
       - /app/node_modules
       - ./frontend:/app
@@ -55,7 +49,7 @@ services:
     ports:
       - "5432:5432"
     env_file:
-      - database_stage.env # configure postgres
+      - database_local.env # configure postgres
     volumes:
       - database-data:/var/lib/postgresql/data/ # persist data even if container shuts down
 
