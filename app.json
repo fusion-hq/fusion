@@ -57,7 +57,7 @@
     "environments": {
         "test": {
           "scripts": {
-            "test": "bundle exec rake test"
+            "test": "cd backend/event_collector & npm start"
           }
         }
     }
