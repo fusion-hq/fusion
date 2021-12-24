@@ -1,0 +1,64 @@
+{
+    "name": "Fusio",
+    "description": "An open source Product Analytics Tool",
+    "repository": "https://github.com/fusion-hq/fusion",
+    "keywords": ["react", "node", "analytics"],
+    "env": {
+      "SECRET_KEY_BASE": {
+        "description": "A secret key for verifying the integrity of signed cookies.",
+        "generator": "secret"
+      },
+      "REACT_APP_EVENT_COLLECTOR": {
+        "description": "Backend event collector",
+        "value": "CHANGE-ME.herokuapp.com",
+        "required": true
+      },
+      "REACT_APP_SERVER_URL": {
+        "description": "Query Service",
+        "value": "CHANGE-ME.herokuapp.com",
+        "required": true
+      },
+      "AUTH0_AUDIENCE": {
+        "description": "Auth0 Audience",
+        "required": true
+      },
+      "AUTH0_DOMAIN": {
+        "description": "Auth0 Domain",
+        "required": true
+      },
+      "REACT_APP_AUTH0_CLIENT_ID": {
+        "description": "Auth0 client Id",
+        "required": true
+      },
+      "REACT_APP_AUTH0_DOMAIN": {
+        "description": "Auth0 Domain",
+        "required": true
+      },
+      "REACT_APP_FRONTEND_URL": {
+        "description": "Frontend App Url",
+        "required": false
+      }
+    },
+    "formation": {
+        "web": {
+          "quantity": 1,
+          "size": "FREE"
+        },
+        "worker": {
+          "quantity": 1,
+          "size": "FREE"
+        }
+    },
+    "buildpacks": [
+        {
+          "url": "heroku/nodejs"
+        }
+    ],
+    "environments": {
+        "test": {
+          "scripts": {
+            "test": "bundle exec rake test"
+          }
+        }
+    }
+  }
