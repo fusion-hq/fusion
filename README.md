@@ -39,13 +39,13 @@ Fusion shows how your users interact with your web based products eg: page-views
 <br />
 
 ## Self Hosting Commands
-- Build Docker Services.
+- Give Permssion for prod.sh.
 ```
-  docker-compose build
+  chmod +x prod.sh
 ```
-- Bring Container up 
+- Start the Project
 ```
-  docker-compose up
+  ./prod.sh
 ```
 - Bring the container down
 ```
@@ -53,13 +53,13 @@ Fusion shows how your users interact with your web based products eg: page-views
 ```
 
 ## Development mode commands (With Hot Reload)
-- Build the staging files
+- Give Persmission to staging.sh.
 ```
-  docker-compose -f docker-compose.staging.yml build
+  chmod +x staging.sh
 ```
-- Make the docker containter up
+- Start the project
 ```
-  docker-compose -f docker-compose.staging.yml up
+  ./staging.sh
 ```
 - Make the docker container down
 ```

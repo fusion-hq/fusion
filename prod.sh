@@ -1,0 +1,1 @@
+docker-compose build && cp .env frontend/ && docker-compose up
