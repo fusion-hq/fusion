@@ -39,23 +39,41 @@ Fusion shows how your users interact with your web based products eg: page-views
 <br />
 
 ## Self Hosting Commands
-- Build Docker Services and make up using docker compose.
+- Build Docker Services.
 ```
-  docker-compose up -d --build
+  docker-compose build
+```
+- Bring Container up 
+```
+  docker-compose up
 ```
 - Bring the container down
 ```
   docker-compose down
 ```
 
-## Development mode commands
+## Development mode commands (With Hot Reload)
 - Build the staging files
 ```
-  docker-compose -f docker-compose.yml -f docker-compose.staging.yml build
+  docker-compose -f docker-compose.staging.yml build
 ```
 - Make the docker containter up
 ```
-  docker-compose -f docker-compose.yml -f docker-compose.staging.yml up
+  docker-compose -f docker-compose.staging.yml up
+```
+- Make the docker container down
+```
+  docker-compose -f docker-compose.staging down
+```
+
+## Some Docker Commands
+- Prune Entire System
+```
+  docker system prune -a (prune entire system be it cache, images, and all)
+```
+- Remove all the Docker Images 
+```
+  docker image prune -a
 ```
 
 ## 📚 Documentation

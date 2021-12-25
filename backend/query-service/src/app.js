@@ -20,7 +20,7 @@ var jwtCheck = jwt({
 app.use(cors({ origin: "*" }));
 app.use(express.json({limit: '100mb'}));
 app.use(express.urlencoded({limit: '100mb', extended: false}));
-app.use(jwtCheck.unless({path: ['/health']}));
+app.use(jwtCheck.unless({path: ['/health-query-service']}));
 
 //routes
 app.use(require("./routes/index"));

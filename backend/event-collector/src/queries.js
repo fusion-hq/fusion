@@ -12,14 +12,19 @@ const { v4 } = require("uuid");
 require("dotenv").config();
 
 // Connect to the postgres DB
-const pool = new Pool({
+let db_object = {
   user: process.env.POSTGRES_USER || process.env.DB_USER_HOSTED,
   host: process.env.POSTGRES_HOST || process.env.DB_HOST_HOSTED,
   database: process.env.POSTGRES_DB || process.env.DB_HOSTED,
   password: process.env.POSTGRES_PASSWORD || process.env.DB_PASSWORD_HOSTED,
-  port: process.env.POSTGRES_PORT || process.env.DB_PORT_HOSTED,
-  ssl: process.env.NODE_ENV === 'PRODUCTION' ? { rejectUnauthorized: false } : { rejectUnauthorized: true }
-});
+  port: process.env.POSTGRES_PORT || process.env.DB_PORT_HOSTED
+}
+
+if(process.env.NODE_ENV === 'PRODUCTION') {
+  db_object.ssl =  { rejectUnauthorized: false }
+}
+
+const pool = new Pool(db_object);
 
 // Convert UNIX timestamp to Date Time
 function timestampToDateTime(UNIX_timestamp) {
