@@ -38,10 +38,6 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile.prod
-    env_file:
-      - .env
-    environment:
-      - NODE_ENV=PRODUCTION
     volumes:
       - /app/node_modules
       - ./frontend:/app
