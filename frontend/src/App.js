@@ -87,7 +87,7 @@ const App = () => {
     <div div className="App">
       <Switch>
         <Route exact path="/">
-          <Redirect to="/insights"></Redirect>
+          <Redirect to="/settings"></Redirect>
         </Route>
         <ProtectedRoute exact path="/users" component={Users} />
         <ProtectedRoute exact path="/events" component={Events} />

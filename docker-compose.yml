@@ -4,12 +4,13 @@ services:
   event-collector:
     container_name: event-collector-prod
     env_file:
-      - database_local.env
       - .env
       - db_hosted.env
     build:
       dockerfile: Dockerfile.prod
       context: "./backend/event-collector"
+    environment:
+      - NODE_ENV=PRODUCTION
     volumes:
       - /app/node_modules
       - ./backend/event-collector:/app
@@ -19,7 +20,6 @@ services:
   query-collector:
     container_name: query-service-prod
     env_file:
-      - database_local.env
       - .env
       - db_hosted.env
     build:
@@ -28,6 +28,8 @@ services:
     volumes:
       - /app/node_modules
       - ./backend/query-service:/app
+    environment:
+      - NODE_ENV=PRODUCTION
     ports:
       - '6060:6060'
 
@@ -38,6 +40,8 @@ services:
       dockerfile: Dockerfile.prod
     env_file:
       - .env
+    environment:
+      - NODE_ENV=PRODUCTION
     volumes:
       - /app/node_modules
       - ./frontend:/app
