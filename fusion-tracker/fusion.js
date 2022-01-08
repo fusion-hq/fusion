@@ -411,6 +411,7 @@ class Fusion {
     let t = new URLSearchParams({
       recording: JSON.stringify(e),
       sessionId: sessionStorage.getItem("sessionId"),
+      write_key: this.apiKey,
       time: 1,
     });
     navigator.sendBeacon(`${api}session`, t);
@@ -419,6 +420,7 @@ class Fusion {
     let t = {
       recording: JSON.stringify(e),
       sessionId: sessionStorage.getItem("sessionId"),
+      write_key: this.apiKey,
       time: 0,
     };
     fetch(`${api}session`, {

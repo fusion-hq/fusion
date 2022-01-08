@@ -1,19 +1,3 @@
-/**
- * Fusion Analytcs Platform Tracking Server
- * Description: Receives xhr request to send pageview data or event data
- * from website using fusion tracking library and saves that data to postgres DB.
- * Author: Vikas Singh
- * Date: 4/3/21
- * Version : Alpha V2
- */
-
-/**
- *  TODO
- *  1) Adapt to v3 tracking library
- *  2) use apikey and domain name to authenticate client website
- *  3) Write REGEX to get OS and browser from userAgent data of tracker payload
- */
-
 const express = require("express");
 var cookieParser = require("cookie-parser");
 const app = express();
@@ -23,6 +7,7 @@ const { v4 } = require("uuid");
 const http = require("http");
 const url = require("url");
 const db = require("./queries");
+const {fusionQueue} = require('../src/queue')
 require("dotenv").config();
 
 //Transparent 1x1px image in base64 format
@@ -49,11 +34,12 @@ app.post("/event", (req, res) => {
   res.setHeader("content-length", GIF.length);
   res.setHeader("content-type", "image/gif");
   res.send(GIF);
-  db.saveEventData(query);
+  fusionQueue.add('eventData', query, {removeOnComplete: true, removeOnFail: 100});
+  // db.saveEventData(query);
 });
 
 app.post("/session", (req, res) => {
-  const {recording, sessionId, time} = req.body
+  const query = req.body
   
   res.setHeader("cache-control", "private, no-cache, no-store, max-age=0");
   res.setHeader("access-control-allow-origin", "*");
@@ -61,11 +47,13 @@ app.post("/session", (req, res) => {
   res.setHeader("content-type", "image/gif");
   res.send(GIF);
 
-  db.saveRecording(recording, sessionId, time);
+  fusionQueue.add('sessionRecordingData', query, {removeOnComplete: true, removeOnFail: 100})
+
+  // db.saveRecording(query);
 })
 
 app.post("/createSession", (req, res) => {
-  const query = req.body
+  const query = req.body;
   query.insertId = v4();
   query.received_at = moment.utc().format("YYYY-MM-DD HH:mm:ss");
   // console.log(query);
@@ -76,7 +64,9 @@ app.post("/createSession", (req, res) => {
   res.setHeader("content-length", GIF.length);
   res.setHeader("content-type", "image/gif");
   res.send(GIF);
-  db.createNewRecordingInstance(query);
+
+  fusionQueue.add('createSessionData', query, {removeOnComplete: true, removeOnFail: 100})
+  // db.createNewRecordingInstance(query);
 });
 
 //route listens for incoming event data
@@ -92,12 +82,10 @@ app.get("/user", (req, res) => {
   res.setHeader("content-length", GIF.length);
   res.setHeader("content-type", "image/gif");
   res.send(GIF);
-  db.identifyUser(query);
-});
 
-app.get('/health-event-collector', (req, res) => {
-  res.json({"health": 'OK event collector'})
-})
+  fusionQueue.add('userData', query,{removeOnComplete: true, removeOnFail: 100});
+  // db.identifyUser(query);
+});
 
 app.listen(process.env.PORT || 3000, () => {
   console.log(`fusion event-collector listening on port 3000...`);
