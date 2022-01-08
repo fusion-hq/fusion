@@ -5,7 +5,7 @@ var stopfn,
   recordingStart = !0,
   sessionRecordingEvents = [],
   firstBitSent = !1,
-  api = "https://localhost:3000/";
+  api = "http://localhost:3000/";
 function generateUserId() {
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (e) {
     var t = (16 * Math.random()) | 0;
@@ -411,6 +411,7 @@ class Fusion {
     let t = new URLSearchParams({
       recording: JSON.stringify(e),
       sessionId: sessionStorage.getItem("sessionId"),
+      write_key: this.apiKey,
       time: 1,
     });
     navigator.sendBeacon(`${api}session`, t);
@@ -419,6 +420,7 @@ class Fusion {
     let t = {
       recording: JSON.stringify(e),
       sessionId: sessionStorage.getItem("sessionId"),
+      write_key: this.apiKey,
       time: 0,
     };
     fetch(`${api}session`, {

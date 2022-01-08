@@ -11,9 +11,13 @@ services:
       context: "./backend/event-collector"
     environment:
       - NODE_ENV=PRODUCTION
+      - REDIS_URL=redis://cache
+
     volumes:
       - /app/node_modules
       - ./backend/event-collector:/app
+    links:
+      - redis
     ports:
       - '3000:3000'
   
@@ -51,7 +55,13 @@ services:
     env_file:
       - database_local.env # configure postgres
     volumes:
-      - database-data:/var/lib/postgresql/data/ # persist data even if container shuts down
+      - database-data:/var/lib/postgresql/data/ # persist data even if container shuts down'
+
+  redis:
+    image: redis
+    container_name: cache
+    expose:
+      - 6379
 
 volumes:
   database-data: # named volumes can be managed easier using docker-compose

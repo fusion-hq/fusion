@@ -166,23 +166,24 @@ const saveEventData = async (data) => {
     // save user data in db(user table)
     await saveNewUser(user_id, device_id, properties, dateTimeUTC, writeKey);
   }
-  else {
-    console.log("Not autherized");
-  }
 };
 
 const saveRecording = async (
-  recording,
-  sessionId,
-  time
+  query
 ) => {
-  recording = JSON.parse(recording);
+  let recording;
+  if(query.recording && query.write_key) {
+    recording = JSON.parse(query.recording);
+  } else {
+    return ;
+  }
+  
 
-  if(time === 0) {
+  if(query.time === 0) {
     try {
       await pool.query(
-        `UPDATE SESSION_RECORDING SET recording= array_cat(recording, $1) where sessionid='${sessionId}'`,
-        [recording]
+        `UPDATE SESSION_RECORDING_${query.write_key} SET recording= array_cat(recording, $1) where sessionid=$2`,
+        [recording, query.sessionId]
       )
     } catch (ex) {
       console.log(ex);
@@ -190,14 +191,14 @@ const saveRecording = async (
   } else {
     try {
       await pool.query(
-        `UPDATE SESSION_RECORDING SET recording= array_append(recording, $1) where sessionid='${sessionId}'`,
-        [recording]
+        `UPDATE SESSION_RECORDING_${query.write_key} SET recording= array_append(recording, $1) where sessionid=$2`,
+        [recording, query.sessionId]
       )
     } catch (ex) {
       console.log(ex);
     }
   }
-}
+};
 
 //create new session
 const createNewRecordingInstance = async (query) => {
@@ -210,7 +211,7 @@ const createNewRecordingInstance = async (query) => {
     dateTimeUTC = moment(new Date(LocalDatetime)).utc().format();
     //Insert data into db
     await pool.query(
-      `INSERT INTO SESSION_RECORDING VALUES ($1, '{}', $2, $3, $4)`,
+      `INSERT INTO SESSION_RECORDING_${query.write_key} VALUES ($1, '{}', $2, $3, $4)`,
       [query.sessionId, JSON.parse(query.properties), query.write_key, dateTimeUTC]
     );
   }
@@ -243,8 +244,6 @@ const saveNewUser = async (
 
 //check if user exists else add new user data (used by fusion.identify() js library)
 const identifyUser = async (userData) => {
-  console.log(userData);
-
   let uuid = userData.uuid,
     properties = userData.properties,
     writeKey = userData.apiKey;

@@ -98,7 +98,7 @@ const saveNewConsoleUserId = async (req, res) => {
 
   //session recording
   await pool.query(
-    `CREATE TABLE IF NOT EXISTS SESSION_RECORDING (
+    `CREATE TABLE IF NOT EXISTS SESSION_RECORDING_${userId} (
         sessionId VARCHAR,
         recording json [],
         properties json,
