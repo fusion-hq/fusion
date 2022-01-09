@@ -1,7 +1,7 @@
 // src/app.js
 
-import React, { useContext, useEffect } from "react";
-import { Redirect, Route, Switch } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Redirect, Switch } from "react-router-dom";
 import { useThemeSwitcher } from "react-css-theme-switcher";
 import "./App.css";
 import { useAuth0 } from "@auth0/auth0-react";
@@ -19,41 +19,21 @@ import Email from "./Pages/Email/Email.js";
 import Recording from "./Pages/Recording/Recording.js";
 
 import ProtectedRoute from "./auth/protected-route";
-import { AccessTokenContext } from "./Context/AccessTokenContext";
-import { WriteKeyContext } from "./Context/WriteKeyContext";
 import Cohort from "./Pages/Cohort/Cohort";
-import axios from "axios";
+import { connect } from "react-redux";
+import store from "./store";
 
-const App = () => {
-  const [accessToken, setAccessToken] = useContext(AccessTokenContext);
-  const [, setWriteKey] = useContext(WriteKeyContext);
+const App = (props) => {
+  const [token, setToken] = useState();
+  const {dispatch} = store;
 
   const { status } = useThemeSwitcher();
-  const serverUrl = process.env.REACT_APP_SERVER_URL;
-  const { getAccessTokenSilently, isLoading, user, isAuthenticated } =
-    useAuth0();
-  var userId;
-
-  var planUrl = `https://user-plan-service-c1ae03e9e39e760c.onporter.run/plans/`;
+  const { getAccessTokenSilently, isLoading, user, isAuthenticated } = useAuth0();
 
   const getAccessToken = async () => {
     try {
-      const token = await getAccessTokenSilently();
-      setAccessToken(token);
-      //console.log(accessToken);
-    } catch (error) {
-      console.log(error.message);
-    }
-  };
-
-  const saveFusionUserId = async (userId) => {
-    const token = accessToken;
-    try {
-      await fetch(`${serverUrl}/save-userId?userId=${userId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      let accessToken = await getAccessTokenSilently();
+      setToken(accessToken)
     } catch (error) {
       console.log(error.message);
     }
@@ -61,21 +41,18 @@ const App = () => {
 
   useEffect(() => {
     getAccessToken();
-
+    dispatch({type: "writeKeyModel/setWriteKey", payload: {
+      token: token,
+      isLoading: isLoading,
+      user: user?.sub.substr(6),
+      isAuthenticated: isAuthenticated
+    }});
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [token, user, isAuthenticated, isLoading]);
 
   //check if auth done else show loader
-  if (isLoading) {
+  if (props?.writeKeyModel?.isLoading) {
     return <Loading />;
-  }
-
-  // super important otherwise throws error
-  if (isAuthenticated) {
-    userId = user.sub.substr(6);
-    saveFusionUserId(userId);
-    setWriteKey(userId);
-    axios.post(planUrl + `getAccountAvailability/${userId}/`);
   }
 
   //check if css applies by theme-switcher else show loader
@@ -86,9 +63,7 @@ const App = () => {
   return (
     <div div className="App">
       <Switch>
-        <Route exact path="/">
-          <Redirect to="/settings"></Redirect>
-        </Route>
+        <Redirect exact from="/" to="/settings"></Redirect>
         <ProtectedRoute exact path="/users" component={Users} />
         <ProtectedRoute exact path="/events" component={Events} />
         <ProtectedRoute exact path="/session" component={Session} />
@@ -119,4 +94,12 @@ const App = () => {
   );
 };
 
-export default App;
+const mapState = (state) => ({
+  writeKeyModel: state.writeKeyModel,
+});
+
+const mapDispatch = (dispatch) => ({
+  setWriteKey: () => dispatch.writeKeyModel.setWriteKey()
+});
+
+export default connect(mapState, mapDispatch)(App);

@@ -3,7 +3,7 @@
  * Show basic welcome message and some UI
  */
 
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import "./Users.css";
 import { useHistory } from "react-router-dom";
 import Sidenav from "../../Components/Sidenav/Sidenav.js";
@@ -24,20 +24,20 @@ import {
   RightOutlined,
 } from "@ant-design/icons";
 import { LoadingOutlined } from '@ant-design/icons';
-import { AccessTokenContext } from "../../Context/AccessTokenContext";
-import { WriteKeyContext } from "../../Context/WriteKeyContext";
 import Tags from "../../Components/TrendsEditor/Tags";
 import moment from "moment";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { monokai } from "react-syntax-highlighter/dist/esm/styles/hljs";
 import axios from "axios";
+import { connect } from "react-redux";
 
-function Users() {
+function Users(props) {
   const history = useHistory();
 
-  const [accessToken, ] = useContext(AccessTokenContext);
-  const [writeKey, ] = useContext(WriteKeyContext);
-  const token = accessToken;
+  //authtoken and writekey
+  const [token, ] = useState(props?.writeKeyModel?.token);
+  const [writeKey, ] = useState(props?.writeKeyModel?.user);
+
   const serverUrl = process.env.REACT_APP_SERVER_URL;
   const [userList, setUserList] = useState([]);
   const [whereFilterDropdownVisible, setWhereFilterDropdownVisible] =
@@ -628,4 +628,12 @@ function Users() {
     </div>
   );
 }
-export default Users;
+const mapState = (state) => ({
+  writeKeyModel: state.writeKeyModel,
+});
+
+const mapDispatch = (dispatch) => ({
+  setWriteKey: () => dispatch.writeKeyModel.setWriteKey()
+});
+
+export default connect(mapState, mapDispatch)(Users);

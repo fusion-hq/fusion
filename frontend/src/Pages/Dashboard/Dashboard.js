@@ -8,20 +8,20 @@ import "./Dashboard.css";
 import Sidenav from "../../Components/Sidenav/Sidenav.js";
 import { Form, Input, Table, Button, Space, Modal } from "antd";
 import { PlusOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
-import { AccessTokenContext } from "../../Context/AccessTokenContext";
-import { WriteKeyContext } from "../../Context/WriteKeyContext";
 import { SetupWizardContext } from "../../Context/SetupWizardContext";
 import { Link } from "react-router-dom";
 import { Trash2 } from "react-feather";
 import { useAuth0 } from "@auth0/auth0-react";
 import SetupWizard from "../../Components/SetupWizard/SetupWizard";
+import { connect } from "react-redux";
 
-function Dashboard() {
-  const [accessToken,] = useContext(AccessTokenContext);
-  const [writeKey,] = useContext(WriteKeyContext);
+function Dashboard(props) {
+
+  const [token, ] = useState(props?.writeKeyModel?.token);
+  const [writeKey, ] = useState(props?.writeKeyModel?.user);
   const [, setSetupWizardVisible] = useContext(SetupWizardContext);
   const serverUrl = process.env.REACT_APP_SERVER_URL;
-  const token = accessToken;
+  
   const [dashboards, setDashboards] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [dashboardName, setDashboardName] = useState("");
@@ -317,4 +317,12 @@ function Dashboard() {
     </div>
   );
 }
-export default Dashboard;
+const mapState = (state) => ({
+  writeKeyModel: state.writeKeyModel,
+});
+
+const mapDispatch = (dispatch) => ({
+  setWriteKey: () => dispatch.writeKeyModel.setWriteKey()
+});
+
+export default connect(mapState, mapDispatch)(Dashboard);

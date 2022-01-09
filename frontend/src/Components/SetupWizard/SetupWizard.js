@@ -15,18 +15,19 @@ import {
 } from "antd";
 import { LinkOutlined } from "@ant-design/icons";
 import { Trash2 } from "react-feather";
-import { WriteKeyContext } from "../../Context/WriteKeyContext";
-import { AccessTokenContext } from "../../Context/AccessTokenContext";
 import { SetupWizardContext } from "../../Context/SetupWizardContext";
 
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { monokai } from "react-syntax-highlighter/dist/esm/styles/hljs";
+import { connect } from "react-redux";
 
-export default function SetupWizard() {
-  const [accessToken, ] = useContext(AccessTokenContext);
-  const token = accessToken;
+function SetupWizard(props) {
+
+  //authtoken and writekey
+  const [token, ] = useState(props?.writeKeyModel?.token);
+  const [writeKey, ] = useState(props?.writeKeyModel?.user);
+
   const serverUrl = process.env.REACT_APP_SERVER_URL;
-  const [writeKey, ] = useContext(WriteKeyContext);
   const [setupWizardVisible, setSetupWizardVisible] =
     useContext(SetupWizardContext);
   const [current, setCurrent] = useState(0);
@@ -343,3 +344,13 @@ fusion.init("${writeKey}", "${apiServer}", false);}};})();</script>`;
     </div>
   );
 }
+
+const mapState = (state) => ({
+  writeKeyModel: state.writeKeyModel,
+});
+
+const mapDispatch = (dispatch) => ({
+  setWriteKey: () => dispatch.writeKeyModel.setWriteKey()
+});
+
+export default connect(mapState, mapDispatch)(SetupWizard);

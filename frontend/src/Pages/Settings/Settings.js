@@ -3,26 +3,29 @@
  * Show basic welcome message and some UI
  */
 
- import React, { useContext, useEffect, useState } from "react";
+ import React, { useEffect, useState } from "react";
  import "./Settings.css";
  import Sidenav from "../../Components/Sidenav/Sidenav.js";
  import { Button, Modal, Select, Tabs, Card } from "antd";
  import { LoadingOutlined } from "@ant-design/icons";
  import axios from "axios";
- import { WriteKeyContext } from "../../Context/WriteKeyContext";
  import Setup from "./Setup";
+ import { connect } from "react-redux";
+  
+ function Settings(props) {
  
- function Settings() {
-   const paymentsURL = process.env.REACT_APP_PAYMENT_URL;
+   const [writeKey, ] = useState(props?.writeKeyModel?.user);
+ 
+   const paymentsURL = process.env.REACT_APP_PAYMENT_URL
  
    const [modelState, setModalState] = useState(false);
    const [modalLoading, setModalLoading] = useState(false);
    const [selectedPlan, setSelectedPlan] = useState("Basic");
- 
+  
    function handleChange(value) {
      setSelectedPlan(value);
    }
- 
+  
    const { Option } = Select;
    const { TabPane } = Tabs;
  
@@ -47,8 +50,9 @@
  
    const [messageLimit, setMessageLimit] = useState(0);
  
-   const planURL = process.env.REACT_APP_USER_URL
-   const [writeKey] = useContext(WriteKeyContext);
+   const planURL =
+     "https://user-plan-service-c1ae03e9e39e760c.onporter.run/plans/";
+   //authtoken and writekey
  
    const [planPrice, setPlanPrice] = useState(0);
  
@@ -70,7 +74,7 @@
      axios.get(planURL + `getPlanDetails/${selectedPlan}/`).then((res) => {
        setPlanPrice(res.data.price);
      });
-   }, [selectedPlan, writeKey, planURL]);
+   }, [selectedPlan, writeKey]);
  
    //razorypay code -
    const handlePaymentSuccess = async (response) => {
@@ -151,7 +155,7 @@
      var rzp1 = new window.Razorpay(options);
      rzp1.open();
    };
- 
+  
    return (
      <div className="Settings">
        <div className="main-container">
@@ -334,4 +338,12 @@
      </div>
    );
  }
- export default Settings;
+ const mapState = (state) => ({
+   writeKeyModel: state.writeKeyModel,
+ });
+ 
+ const mapDispatch = (dispatch) => ({
+   setWriteKey: () => dispatch.writeKeyModel.setWriteKey()
+ });
+ 
+ export default connect(mapState, mapDispatch)(Settings);

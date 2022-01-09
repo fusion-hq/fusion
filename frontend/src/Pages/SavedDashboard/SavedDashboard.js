@@ -3,7 +3,7 @@
  * Show basic welcome message and some UI
  */
 
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import "./SavedDashboard.css";
 import Sidenav from "../../Components/Sidenav/Sidenav.js";
 import { Button, Spin } from "antd";
@@ -11,18 +11,18 @@ import {
   ReloadOutlined,
   FundProjectionScreenOutlined,
 } from "@ant-design/icons";
-import { AccessTokenContext } from "../../Context/AccessTokenContext";
-import { WriteKeyContext } from "../../Context/WriteKeyContext";
 import { useParams } from "react-router-dom";
 import DashboardCard from "../../Components/DashboardCard/DashboardCard";
+import { connect } from "react-redux";
 
-function SavedDashboard() {
+function SavedDashboard(props) {
   const { dashboardTitle } = useParams();
 
-  const [accessToken, ] = useContext(AccessTokenContext);
-  const [writeKey, ] = useContext(WriteKeyContext);
+  //authtoken and writekey
+  const [token, ] = useState(props?.writeKeyModel?.token);
+  const [writeKey, ] = useState(props?.writeKeyModel?.user);
+
   const serverUrl = process.env.REACT_APP_SERVER_URL;
-  const token = accessToken;
   const [metrics, setMetrics] = useState([]);
   const [sidenavVisible, setSidenavVisible] = useState("flex");
   const [loading, setLoading] = useState(false);
@@ -128,4 +128,12 @@ function SavedDashboard() {
     </div>
   );
 }
-export default SavedDashboard;
+const mapState = (state) => ({
+  writeKeyModel: state.writeKeyModel,
+});
+
+const mapDispatch = (dispatch) => ({
+  setWriteKey: () => dispatch.writeKeyModel.setWriteKey()
+});
+
+export default connect(mapState, mapDispatch)(SavedDashboard);

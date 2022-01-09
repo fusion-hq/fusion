@@ -20,11 +20,8 @@ import {
   notification,
   Spin,
 } from "antd";
-import { AccessTokenContext } from "../../Context/AccessTokenContext";
-import { WriteKeyContext } from "../../Context/WriteKeyContext";
 import { SearchQueryContext } from "../../Context/SearchQueryContext";
 
-import { useAuth0 } from "@auth0/auth0-react";
 import {
   LineChartOutlined,
   BarChartOutlined,
@@ -40,10 +37,11 @@ import TableChart from "../TableChart/TableChart";
 import BarChart from "../BarChart/BarChart";
 import PieChart from "../PieChart/PieChart";
 import CountChart from "../CountChart/CountChart";
+import { connect } from "react-redux";
 
-export default function TrendsEditor() {
-  const [accessToken, ] = useContext(AccessTokenContext);
-  const [writeKey, ] = useContext(WriteKeyContext);
+function TrendsEditor(props) {
+  const [token, ] = useState(props?.writeKeyModel?.token);
+  const [writeKey, ] = useState(props?.writeKeyModel?.user);
   const [searchQuery, ] = useContext(SearchQueryContext);
 
   const [loading, setLoading] = useState(false);
@@ -61,10 +59,7 @@ export default function TrendsEditor() {
   const frontendUrl =
     process.env.REACT_APP_FRONTEND_URL || "http://localhost:4040";
 
-  const token = accessToken;
-  const userWriteKey = writeKey;
-  const { user } = useAuth0();
-  const { email } = user;
+  const { email } = writeKey;
 
   //User search input
   const [eventKeywordList, setEventKeywordList] = useState([]);
@@ -353,7 +348,7 @@ export default function TrendsEditor() {
   const fetchFilterPropertyValue = async (property) => {
     try {
       const response = await fetch(
-        `${serverUrl}/filter-property-value?propertyName=${property}&writeKey=${userWriteKey}`,
+        `${serverUrl}/filter-property-value?propertyName=${property}&writeKey=${writeKey}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -381,13 +376,13 @@ export default function TrendsEditor() {
     selectedDateTimeRange,
     startDate,
     endDate,
-    userWriteKey
+    writeKey
   ) => {
     setLoading(true);
     try {
       let filterString = JSON.stringify(filterTags);
       const response = await fetch(
-        `${serverUrl}/trends?event=${selectedEvent}&aggregator=${eventCollectionType}&filters=${filterString}&groupBy=${selectedGroupByProperty}&timescale=${selectedTimescale}&dateTime=${selectedDateTimeRange}&startDate=${startDate}&endDate=${endDate}&writeKey=${userWriteKey}`,
+        `${serverUrl}/trends?event=${selectedEvent}&aggregator=${eventCollectionType}&filters=${filterString}&groupBy=${selectedGroupByProperty}&timescale=${selectedTimescale}&dateTime=${selectedDateTimeRange}&startDate=${startDate}&endDate=${endDate}&writeKey=${writeKey}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -417,12 +412,12 @@ export default function TrendsEditor() {
     selectedDateTimeRange,
     startDate,
     endDate,
-    userWriteKey
+    writeKey
   ) => {
     try {
       let filterString = JSON.stringify(filterTags);
       await fetch(
-        `${serverUrl}/save-metrics?metricsName=${metricsName}&dashboard=${selectedDashboard}&aggregator=${eventCollectionType}&event=${selectedEvent}&filters=${filterString}&timescale=${selectedTimescale}&chartType=${selectedGraphType}&groupBy=${selectedGroupByProperty}&dateTime=${selectedDateTimeRange}&startDate=${startDate}&endDate=${endDate}&writeKey=${userWriteKey}`,
+        `${serverUrl}/save-metrics?metricsName=${metricsName}&dashboard=${selectedDashboard}&aggregator=${eventCollectionType}&event=${selectedEvent}&filters=${filterString}&timescale=${selectedTimescale}&chartType=${selectedGraphType}&groupBy=${selectedGroupByProperty}&dateTime=${selectedDateTimeRange}&startDate=${startDate}&endDate=${endDate}&writeKey=${writeKey}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -514,8 +509,8 @@ export default function TrendsEditor() {
         >
           <Option value="is equal">is equal</Option>
           <Option value="is not equal">is not equal</Option>
-          <Option value="contain">constain</Option>
-          <Option value="not contain">not contain</Option>
+          <Option value="contain">contains</Option>
+          <Option value="not contain">not contains</Option>
         </Select>
         <Select
           allowClear
@@ -568,7 +563,7 @@ export default function TrendsEditor() {
   const getAllEventsName = async () => {
     try {
       const response = await fetch(
-        `${serverUrl}/events-name?writeKey=${userWriteKey}`,
+        `${serverUrl}/events-name?writeKey=${writeKey}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -596,7 +591,7 @@ export default function TrendsEditor() {
   const getAllEventProperty = async () => {
     try {
       const response = await fetch(
-        `${serverUrl}/events-properties?writeKey=${userWriteKey}`,
+        `${serverUrl}/events-properties?writeKey=${writeKey}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -628,7 +623,7 @@ export default function TrendsEditor() {
   const getAllDashboardName = async () => {
     try {
       const response = await fetch(
-        `${serverUrl}/dashboards?writeKey=${userWriteKey}`,
+        `${serverUrl}/dashboards?writeKey=${writeKey}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -687,6 +682,7 @@ export default function TrendsEditor() {
       openDashboardCreatedNotification("success");
       getAllDashboardName();
       setIsDashboardModalVisible(false);
+      handleSaveMetrics();
     } else return;
   };
 
@@ -701,7 +697,7 @@ export default function TrendsEditor() {
       selectedDateTimeRange,
       startDate,
       endDate,
-      userWriteKey
+      writeKey
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -713,7 +709,7 @@ export default function TrendsEditor() {
     selectedDateTimeRange,
     startDate,
     endDate,
-    userWriteKey,
+    writeKey,
   ]);
 
   // At every new render, call getAllEventsNames to load available events from db
@@ -740,18 +736,18 @@ export default function TrendsEditor() {
   }, [selectedFilterProperty]);
 
   // Handle save metrics
-  const handleSaveMetrics = () => {
+  const handleSaveMetrics = async () => {
     if (
       metricsName !== "" &&
-      selectedDashboard !== "" &&
+      // selectedDashboard !== "" &&
       writeKey !== "" &&
       metricsName !== undefined &&
-      selectedDashboard !== undefined &&
+      // selectedDashboard !== undefined &&
       writeKey !== undefined
     ) {
-      saveMetricsToDashboard(
+      await saveMetricsToDashboard(
         metricsName,
-        selectedDashboard,
+        selectedDashboard || dashboardName,
         eventCollectionType,
         selectedEvent,
         filterTags,
@@ -761,7 +757,7 @@ export default function TrendsEditor() {
         selectedDateTimeRange,
         startDate,
         endDate,
-        userWriteKey
+        writeKey
       );
       openSavedCardNotification("success", selectedDashboard);
       setIsCardModalVisible(false);
@@ -1187,3 +1183,11 @@ export default function TrendsEditor() {
     </div>
   );
 }
+
+const mapState = (state) => ({
+  writeKeyModel: state.writeKeyModel,
+});
+const mapDispatch = (dispatch) => ({
+  setWriteKey: () => dispatch.writeKeyModel.setWriteKey()
+});
+export default connect(mapState, mapDispatch)(TrendsEditor);
