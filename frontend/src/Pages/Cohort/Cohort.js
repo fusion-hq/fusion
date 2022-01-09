@@ -1,9 +1,7 @@
-import React, {useEffect, useState, useContext} from "react";
+import React, {useEffect, useState} from "react";
 import Sidenav from "../../Components/Sidenav/Sidenav.js";
 import './Cohort.css'
-import { WriteKeyContext } from "../../Context/WriteKeyContext";
 import axios from "axios";
-import { AccessTokenContext } from "../../Context/AccessTokenContext";
 import {
     Button,
     Table
@@ -12,8 +10,9 @@ import { useHistory } from "react-router";
 import {
     TrashIcon
   } from "@heroicons/react/solid";
+import { connect } from "react-redux";
 
-function Cohort() {
+function Cohort(props) {
     const serverUrl = process.env.REACT_APP_SERVER_URL;
     let history = useHistory();
 
@@ -53,9 +52,8 @@ function Cohort() {
 
     const [loading, setLoading] = useState(true);
     const [cohorts, setCohorts] = useState([]);
-    const [writeKey, ] = useContext(WriteKeyContext);
-    const [accessToken, ] = useContext(AccessTokenContext);
-    const token = accessToken;
+    const [token, ] = useState(props?.writeKeyModel?.token);
+    const [writeKey, ] = useState(props?.writeKeyModel?.user);
 
     const deleteCohort = async (
         writeKey,
@@ -125,4 +123,10 @@ function Cohort() {
     )
 }
 
-export default Cohort;
+const mapState = (state) => ({
+    writeKeyModel: state.writeKeyModel,
+});
+const mapDispatch = (dispatch) => ({
+    setWriteKey: () => dispatch.writeKeyModel.setWriteKey()
+});
+export default connect(mapState, mapDispatch)(Cohort);

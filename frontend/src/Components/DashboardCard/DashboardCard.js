@@ -2,24 +2,24 @@
  * This card component used on dashboard for saved metrics
  */
 
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import "./DashboardCard.css";
 import { Card, Menu, Dropdown, notification, Spin } from "antd";
 import { MoreOutlined } from "@ant-design/icons";
-import { AccessTokenContext } from "../../Context/AccessTokenContext";
-import { WriteKeyContext } from "../../Context/WriteKeyContext";
 import LineCharts from "../LineCharts/LineCharts";
 import TableChart from "../TableChart/TableChart";
 import BarChart from "../BarChart/BarChart";
 import PieChart from "../PieChart/PieChart";
 import CountChart from "../CountChart/CountChart";
+import { connect } from "react-redux";
 
-export default function DashboardCard({ data, key }) {
-  const [accessToken, ] = useContext(AccessTokenContext);
-  const [writeKey, ] = useContext(WriteKeyContext);
+
+function DashboardCard(props) {
+  //authtoken and writekey
+  const [token, ] = useState(props?.writeKeyModel?.token);
+  const [writeKey, ] = useState(props?.writeKeyModel?.user);
 
   const serverUrl = process.env.REACT_APP_SERVER_URL;
-  const token = accessToken;
   // Real fetched data for graph
   const [graphData, setGraphData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -36,7 +36,7 @@ export default function DashboardCard({ data, key }) {
     metrics_name,
     start_date,
     timescale,
-  } = data;
+  } = props.data;
 
   const cardOption = (
     <Menu>
@@ -197,3 +197,13 @@ export default function DashboardCard({ data, key }) {
     </div>
   );
 }
+
+const mapState = (state) => ({
+  writeKeyModel: state.writeKeyModel,
+});
+
+const mapDispatch = (dispatch) => ({
+  setWriteKey: () => dispatch.writeKeyModel.setWriteKey()
+});
+
+export default connect(mapState, mapDispatch)(DashboardCard);

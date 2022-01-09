@@ -3,29 +3,31 @@
  * Show basic welcome message and some UI
  */
 
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import "./Recording.css";
 import { useHistory } from "react-router-dom";
 import Sidenav from "../../Components/Sidenav/Sidenav.js";
 import { Card, Table, Button } from "antd";
-import { AccessTokenContext } from "../../Context/AccessTokenContext";
-import { WriteKeyContext } from "../../Context/WriteKeyContext";
 import { useParams } from "react-router-dom";
 import rrwebPlayer from "rrweb-player";
 import "rrweb-player/dist/style.css";
-import axios from "axios";
+import Loading from "../../Components/Loading/Loading";
+import { connect } from "react-redux";
+import { deleteRecording } from "../../api/network/deleteRecording";
+import useRecordingData from "../../api/hooks/useRecordingData";
 
-function Recording() {
+function Recording(props) {
   const history = useHistory();
 
   const { id } = useParams();
-  const [accessToken] = useContext(AccessTokenContext);
-  const [writeKey] = useContext(WriteKeyContext);
-  const serverUrl = process.env.REACT_APP_SERVER_URL;
+  const [writeKey, ] = useState(props?.writeKeyModel?.user);
 
   const [, setRecordingProfile] = useState({});
   const [, setRecordingIds] = useState([]);
-  const [userProfileProperties, setRecordingProfileProperties] = useState([]);
+  const [recordingProperties, setRecordingProperties] = useState([]);
+
+  const recordingData = useRecordingData(id, writeKey);
+  console.log(recordingData?.data);
 
   //session recording states
   const [recordingEvents, setRecordingEvents] = useState([]);
@@ -51,43 +53,27 @@ function Recording() {
     },
   ];
 
-  function onChange(pagination, filters, sorter, extra) {
-    //console.log("params", pagination, filters, sorter, extra);
-  }
-
-  // Fetch users profile data
-  const getRecordingData = async (id, writeKey) => {
+  // transform fetched data
+  const getRecordingData = () => {
     try {
-      const token = accessToken;
-
-      if (writeKey.length > 0) {
-        const response = await fetch(
-          `${serverUrl}/getRecordingData?sessionId=${id}&writeKey=${writeKey}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        const userProfileData = await response.json();
+        const recordingDataAPI = recordingData?.data;
 
         if (
-          userProfileData !== null &&
-          userProfileData !== undefined &&
-          userProfileData !== []
+          recordingDataAPI !== null &&
+          recordingDataAPI !== undefined &&
+          recordingDataAPI !== []
         ) {
-          setRecordingEvents(userProfileData[0].recording);
+          setRecordingEvents(recordingDataAPI[0].recording);
         }
 
         //console.log(userProfileData[0].properties);
 
-        setRecordingProfile(userProfileData);
-        setRecordingIds(userProfileData.user_ids);
+        setRecordingProfile(recordingDataAPI);
+        setRecordingIds(recordingDataAPI.user_ids);
 
         //format userProfileData.properties object to array to render antd Table
         let profilePropertiesDataForTable = [],
-          propertiesObject = userProfileData[0].properties;
+          propertiesObject = recordingDataAPI[0].properties;
         var keyCount = 1;
         for (const property in propertiesObject) {
           let tableRowData = {
@@ -98,17 +84,18 @@ function Recording() {
           profilePropertiesDataForTable.push(tableRowData);
           keyCount++;
         }
-        setRecordingProfileProperties(profilePropertiesDataForTable);
-      }
+        setRecordingProperties(profilePropertiesDataForTable);
+      
     } catch (error) {
       console.error(error.message);
     }
   };
 
+  //transform data on change of recording data
   useEffect(() => {
-    getRecordingData(id, writeKey);
+    getRecordingData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, writeKey]);
+  }, [recordingData]);
 
   useEffect(() => {
     if (recordingEvents.length > 0) {
@@ -126,14 +113,8 @@ function Recording() {
   }, [recordingEvents]);
 
 
-  const deleteRecording = async () => {
-    const token = accessToken;
-
-    axios.get(`${serverUrl}/deleteRecording?sessionId=${id}&writeKey=${writeKey}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }).then((res) => {
+  const deleteRecordingInstance = async () => {
+    await deleteRecording(id, writeKey).then((res) => {
       history.push('/session')
     })
   }
@@ -150,15 +131,27 @@ function Recording() {
                   <h1>Recording</h1>
                   <p>See session recording of a specific user</p>
                 </div>
-                <Button onClick={deleteRecording}>Delete</Button>
+                <Button onClick={deleteRecordingInstance}>Delete</Button>
               </div>
 
               {/** session replayer */}
               {/* <Player />  */}
-              <div
-                id="wrapper"
-                style={{ marginTop: "0px", marginLeft: "0px" }}
-              />
+              {
+                recordingEvents.length === 0 ? (
+                  !recordingData ? <Loading /> : (
+                    <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+                      <img style={{width: 400, height: 400}} src="https://raw.githubusercontent.com/fusion-hq/fusion/main/doc/no-data.png" alt="no-data"/>
+                      <p style={{fontSize: 28}}>No Data</p>
+                    </div>
+                  )
+                ) : (
+                  <div
+                    id="wrapper"
+                    style={{ marginTop: "0px", marginLeft: "0px" }}
+                  />
+                )
+              }
+              
               {/* {recordingEvents!==null && recordingEvents!==undefined && recordingEvents!==[] ? <RRWEBPlayer events={recordingEvents} />: null} */}
             </div>
 
@@ -179,8 +172,7 @@ function Recording() {
                 style={{ width: "100%" }}
                 className="property-table"
                 columns={profilePropertyTableColumn}
-                dataSource={userProfileProperties}
-                onChange={onChange}
+                dataSource={recordingProperties}
                 size="small"
                 pagination={false}
               />
@@ -191,4 +183,13 @@ function Recording() {
     </div>
   );
 }
-export default Recording;
+
+const mapState = (state) => ({
+  writeKeyModel: state.writeKeyModel,
+});
+
+const mapDispatch = (dispatch) => ({
+  setWriteKey: () => dispatch.writeKeyModel.setWriteKey()
+});
+
+export default connect(mapState, mapDispatch)(Recording);

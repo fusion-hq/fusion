@@ -3,7 +3,7 @@
  * Show basic welcome message and some UI
  */
 
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import "./Events.css";
 import Sidenav from "../../Components/Sidenav/Sidenav.js";
 import {
@@ -20,18 +20,16 @@ import {
   LeftOutlined,
   RightOutlined,
 } from "@ant-design/icons";
-import { AccessTokenContext } from "../../Context/AccessTokenContext";
-import { WriteKeyContext } from "../../Context/WriteKeyContext";
 import Tags from "../../Components/TrendsEditor/Tags";
 import moment from "moment";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { monokai } from "react-syntax-highlighter/dist/esm/styles/hljs";
+import { connect } from "react-redux";
 
-function Events() {
+function Events(props) {
   const [, setEventCount] = useState(0);
-  const [accessToken, ] = useContext(AccessTokenContext);
-  const [writeKey, ] = useContext(WriteKeyContext);
-  const token = accessToken;
+  const [token, ] = useState(props?.writeKeyModel?.token);
+  const [writeKey, ] = useState(props?.writeKeyModel?.user) 
   const serverUrl = process.env.REACT_APP_SERVER_URL;
   const [eventList, setEventList] = useState();
   const [loading, setLoading] = useState(true);
@@ -310,7 +308,6 @@ function Events() {
   ) => {
     setLoading(true);
     try {
-      const token = accessToken;
       let filterString = JSON.stringify(filterTags);
 
       if (selectedDateTimeRange !== "All time") {
@@ -666,4 +663,16 @@ function Events() {
     </div>
   );
 }
-export default Events;
+
+const mapState = (state) => ({
+  writeKeyModel: state.writeKeyModel,
+});
+
+const mapDispatch = (dispatch) => ({
+  setWriteKey: () => dispatch.writeKeyModel.setWriteKey()
+});
+
+export default connect(mapState, mapDispatch)(Events);
+
+
+// export default Events;

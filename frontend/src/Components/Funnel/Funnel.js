@@ -2,7 +2,7 @@
  * This the component is used in Insights.js and allows to build trend graph
  */
 
- import React, { useState, useEffect, useContext } from "react";
+ import React, { useState, useEffect } from "react";
  import "./Funnel.css";
  import {
    Card,
@@ -14,26 +14,27 @@
    DatePicker,
    Spin,
    message,
-   Tag
+   Tag,
  } from "antd";
- import { AccessTokenContext } from "../../Context/AccessTokenContext";
- import { WriteKeyContext } from "../../Context/WriteKeyContext";
  // import FunnelStep from "./FunnelStep";
  import { InfoCircleOutlined } from "@ant-design/icons";
  import FunnelChart from "../FunnelChart/FunnelChart";
  import { Trash2, Filter } from "react-feather";
+ import { connect } from "react-redux";
  
  //import FunnelChart from "../FunnelSource/FunnelChart";
  
- export default function Funnel() {
-   const [accessToken] = useContext(AccessTokenContext);
-   const [writeKey] = useContext(WriteKeyContext);
+ function Funnel(props) {
+   //authtoken and writekey
+   const [token, ] = useState(props?.writeKeyModel?.token);
+   const [writeKey, ] = useState(props?.writeKeyModel?.user);
    const [loading, setLoading] = useState(false);
  
-   const [availableEventNameForSelect, setAvailableEventNameForSelect] = useState([]);
-   const [DateRangeFilterDropdownVisible, setDateRangeFilterDropdownVisible] = useState(false);
+   const [availableEventNameForSelect, setAvailableEventNameForSelect] =
+     useState([]);
+   const [DateRangeFilterDropdownVisible, setDateRangeFilterDropdownVisible] =
+     useState(false);
    const serverUrl = process.env.REACT_APP_SERVER_URL;
-   const token = accessToken;
    const userWriteKey = writeKey;
  
    //used for funnels
@@ -51,17 +52,20 @@
    const [graphData, setGraphData] = useState([]);
  
    // used by WHERE property popup state auto visibility
-//    const [filterTags, ] = useState([]);
+   //    const [filterTags, ] = useState([]);
  
-   const [whereFilterDropdownVisible, setWhereFilterDropdownVisible] = useState(-1);
+   const [whereFilterDropdownVisible, setWhereFilterDropdownVisible] =
+     useState(-1);
  
-   const [availableEventPropertyForSelect, setAvailableEventPropertyForSelect] = useState([]);
+   const [availableEventPropertyForSelect, setAvailableEventPropertyForSelect] =
+     useState([]);
  
    const [selectedFilterProperty, setSelectedFilterProperty] = useState("");
    const [selectedFilterOperator, setSelectedFilterOperator] = useState("");
    const [selectedFilterValue, setSelectedFilterValue] = useState("");
-   const [availablePropertyValueForSelect, setAvailablePropertyValueForSelect] = useState([]);
-
+   const [availablePropertyValueForSelect, setAvailablePropertyValueForSelect] =
+     useState([]);
+ 
    //componnets from antd
    const { Option } = Select;
    const { RangePicker } = DatePicker;
@@ -90,40 +94,46 @@
    //Saves values of filter input fields in filterTags state
    const saveFilter = (parent_id) => {
      // check if filter selecttor are not empty and then save the filter tag
-        if (
-        selectedFilterProperty !== "" &&
-        selectedFilterOperator !== "" &&
-        selectedFilterValue !== ""
-        ) {
-            const newEventList = eventList.map((event) => {
-                if(event.id === parent_id) {
-                    event.filters = [...event.filters, {
-                        id: event.filters.length > 0 ? event.filters[event.filters.length - 1].id + 1: 0,
-                        Property: selectedFilterProperty,
-                        Operator: selectedFilterOperator,
-                        Value: selectedFilterValue,
-                    }]
-                }
-                return event
-            })
-            setEventList(newEventList);
-            setWhereFilterDropdownVisible(-1);
-        } else {
-            message.warning("Select all fields !");
-        }
-    };
+     if (
+       selectedFilterProperty !== "" &&
+       selectedFilterOperator !== "" &&
+       selectedFilterValue !== ""
+     ) {
+       const newEventList = eventList.map((event) => {
+         if (event.id === parent_id) {
+           event.filters = [
+             ...event.filters,
+             {
+               id:
+                 event.filters.length > 0
+                   ? event.filters[event.filters.length - 1].id + 1
+                   : 0,
+               Property: selectedFilterProperty,
+               Operator: selectedFilterOperator,
+               Value: selectedFilterValue,
+             },
+           ];
+         }
+         return event;
+       });
+       setEventList(newEventList);
+       setWhereFilterDropdownVisible(-1);
+     } else {
+       message.warning("Select all fields !");
+     }
+   };
  
-    // Removes a FilterTag whose id is passed as argument
-//     const deleteFilterTag = (filterId, funnelId) => {
-//         console.log(filterId, funnelId);
-//         const funnel = eventList.filter((event) => event.id === funnelId)
-
-//         console.log(funnel[0])
-
-//         const newFilter = funnel[0].filters.filter((filter) => filter.id !== filterId);
-
-//         console.log(newFilter);
-//    };
+   // Removes a FilterTag whose id is passed as argument
+   //     const deleteFilterTag = (filterId, funnelId) => {
+   //         console.log(filterId, funnelId);
+   //         const funnel = eventList.filter((event) => event.id === funnelId)
+ 
+   //         console.log(funnel[0])
+ 
+   //         const newFilter = funnel[0].filters.filter((filter) => filter.id !== filterId);
+ 
+   //         console.log(newFilter);
+   //    };
  
    // handles change in date time range selector value
    function handleDateTimeRangeSelectChange(value) {
@@ -142,20 +152,19 @@
  
    // Selector handlers used for SHOW section
    function handleEventNameSelect(value, index) {
-     let changed = 0
+     let changed = 0;
      const newEventList = eventList.map((item) => {
-       if(item.id === index) {
+       if (item.id === index) {
          changed = 1;
-         return {id: item.id, event: `${value}`, filters: []};
+         return { id: item.id, event: `${value}`, filters: [] };
        } else {
          return item;
        }
-     })
-     if(changed) {
-       setEventList([...newEventList])
-     }
-     else {
-       let newFunnelEvent = {id: index, event: `${value}`, filters: []};
+     });
+     if (changed) {
+       setEventList([...newEventList]);
+     } else {
+       let newFunnelEvent = { id: index, event: `${value}`, filters: [] };
        setEventList([...eventList, newFunnelEvent]);
      }
    }
@@ -178,16 +187,13 @@
    };
    // Removes a FilterTag whose id is passed as argument
    const deleteFunnelStep = (_, id) => {
- 
-     if(funnelSteps.length > 1) {
+     if (funnelSteps.length > 1) {
        const newFunnelSteps = funnelSteps.filter(
          (funnelStep) => funnelStep.id !== id
        );
-   
-       const newEventList = eventList.filter(
-         (events) => events.id !== id
-       );
-   
+ 
+       const newEventList = eventList.filter((events) => events.id !== id);
+ 
        setFunnelSteps(newFunnelSteps);
        setEventList(newEventList);
      }
@@ -343,7 +349,7 @@
  
    //  fetched new graph data from db when selected variables chnages
    useEffect(() => {
-    fetchFunnelData(
+     fetchFunnelData(
        eventList,
        selectedDateTimeRange,
        startDate,
@@ -365,108 +371,112 @@
      getAllEventsName();
      // eslint-disable-next-line react-hooks/exhaustive-deps
    }, []);
-
+ 
    const displayTags = (id) => {
-        const Event = eventList.map(event => {
-            if(event.id === id) {
-                return event
-            } else {
-                return null
-            }
-        })
-
-        const newEvent = Event.filter((item) => item!==null);
-        return newEvent[0]?.filters;
-    }
-
+     const Event = eventList.map((event) => {
+       if (event.id === id) {
+         return event;
+       } else {
+         return null;
+       }
+     });
+ 
+     const newEvent = Event.filter((item) => item !== null);
+     return newEvent[0]?.filters;
+   };
+ 
    //------------Filter Menu----------------
-
-    const whereFilterMenu = (id) => {
-        return (
-            <Menu
-                style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-evenly",
-                    alignItems: "flex-start",
-                    padding: "5%",
-                    minWidth: "380px",
-                }}
-                >
-                <span>
-                    <p style={{ marginBottom: "2px" }}>Select filter property and value</p>
-                    <Select
-                    allowClear
-                    showSearch
-                    bordered={true}
-                    placeholder="Property"
-                    dropdownStyle={{ minWidth: "150px" }}
-                    style={{
-                        minWidth: "110px",
-                        margin: "10px 10px 10px 0px",
-                    }}
-                    onChange={handleFilterPropertySelect}
-                    filterOption={(input, option) =>
-                        option.props.children.toLowerCase().indexOf(input.toLowerCase()) >=
-                        0
-                    }
-                    >
-                    {availableEventPropertyForSelect}
-                    </Select>
-                    <Select
-                        allowClear
-                        showSearch
-                        bordered={true}
-                        placeholder="Operator"
-                        dropdownStyle={{ minWidth: "150px" }}
-                        style={{ minWidth: "50px", margin: "10px 10px 10px 0px" }}
-                        onChange={handleFilterOperatorSelect}
-                        filterOption={(input, option) =>
-                            option.props.children.toLowerCase().indexOf(input.toLowerCase()) >=
-                            0
-                        }
-                        >
-                        <Option value="is equal">is equal</Option>
-                        <Option value="is not equal">is not equal</Option>
-                        <Option value="contain">constain</Option>
-                        <Option value="not contain">not contain</Option>
-                    </Select>
-                    <Select
-                        allowClear
-                        showSearch
-                        bordered={true}
-                        placeholder="Value"
-                        dropdownStyle={{ minWidth: "150px" }}
-                        style={{ minWidth: "50px", margin: "10px 0px 10px 0px" }}
-                        onChange={handleFilterValueSelect}
-                    >
-                        {availablePropertyValueForSelect}
-                    </Select>
-                </span>
-
-                <span style={{ display: "flex", justifyContent: "space-around" }}>
-                    <Button
-                        style={{ margin: "10px 10px 0px 0px" }}
-                        onClick={() => saveFilter(id)}
-                        type="primary"
-                    >
-                        Add
-                    </Button>
-                    <Button
-                        style={{ margin: "10px 0px 0px 0px" }}
-                        onClick={() => {
-                            setWhereFilterDropdownVisible(-1);
-                        }}
-                        type="primary"
-                        ghost
-                    >
-                        Done
-                    </Button>
-                </span>
-            </Menu>
-        )
-    };
-
+ 
+   const whereFilterMenu = (id) => {
+     return (
+       <Menu
+         style={{
+           display: "flex",
+           flexDirection: "column",
+           justifyContent: "space-evenly",
+           alignItems: "flex-start",
+           padding: "5%",
+           minWidth: "380px",
+         }}
+       >
+         <span>
+           <p style={{ marginBottom: "2px" }}>
+             Select filter property and value
+           </p>
+           <Select
+             allowClear
+             showSearch
+             bordered={true}
+             placeholder="Property"
+             dropdownStyle={{ minWidth: "150px" }}
+             style={{
+               minWidth: "110px",
+               margin: "10px 10px 10px 0px",
+             }}
+             onChange={handleFilterPropertySelect}
+             filterOption={(input, option) =>
+               option.props.children
+                 .toLowerCase()
+                 .indexOf(input.toLowerCase()) >= 0
+             }
+           >
+             {availableEventPropertyForSelect}
+           </Select>
+           <Select
+             allowClear
+             showSearch
+             bordered={true}
+             placeholder="Operator"
+             dropdownStyle={{ minWidth: "150px" }}
+             style={{ minWidth: "50px", margin: "10px 10px 10px 0px" }}
+             onChange={handleFilterOperatorSelect}
+             filterOption={(input, option) =>
+               option.props.children
+                 .toLowerCase()
+                 .indexOf(input.toLowerCase()) >= 0
+             }
+           >
+             <Option value="is equal">is equal</Option>
+             <Option value="is not equal">is not equal</Option>
+             <Option value="contain">constain</Option>
+             <Option value="not contain">not contain</Option>
+           </Select>
+           <Select
+             allowClear
+             showSearch
+             bordered={true}
+             placeholder="Value"
+             dropdownStyle={{ minWidth: "150px" }}
+             style={{ minWidth: "50px", margin: "10px 0px 10px 0px" }}
+             onChange={handleFilterValueSelect}
+           >
+             {availablePropertyValueForSelect}
+           </Select>
+         </span>
+ 
+         <span style={{ display: "flex", justifyContent: "space-around" }}>
+           <Button
+             style={{ margin: "10px 10px 0px 0px" }}
+             onClick={() => saveFilter(id)}
+             type="primary"
+           >
+             Add
+           </Button>
+           <Button
+             style={{ margin: "10px 0px 0px 0px" }}
+             onClick={() => {
+               setWhereFilterDropdownVisible(-1);
+             }}
+             type="primary"
+             ghost
+           >
+             Done
+           </Button>
+         </span>
+       </Menu>
+     );
+   };
+ 
    //---------------------------------------------
  
    return (
@@ -482,7 +492,7 @@
            height: "66vh",
            margin: "2% 0 0 0",
            boxShadow: "1px 1px 15px 8px rgba(230, 230, 230, 0)",
-           overflow: 'scroll'
+           overflow: "scroll",
          }}
        >
          <h1 className="funnel-graph-properties-editor-headers">
@@ -498,76 +508,80 @@
          </h1>
  
          {funnelSteps.map((funnelStep, index) => (
-            <div key={funnelStep.id}>
-                <div
-                    key={funnelStep.id}
-                    style={{
-                    display: "flex",
-                    alignItems: "center",
-                    marginBottom: "15px",
-                    }}
-                >
-                    <Select
-                        showSearch
-                        bordered={true}
-                        placeholder="Select Event ..."
-                        dropdownStyle={{ minWidth: "200px" }}
-                        style={{ width: "80%", margin: "0px 0px 0px 0px" }}
-                        onChange={(e) => {
-                            handleEventNameSelect(e, funnelStep.id);
-                        }}
-                        filterOption={(input, option) =>
-                            option.props.children.toLowerCase().indexOf(input.toLowerCase()) >=
-                            0
-                        }
-                        >
-                        {availableEventNameForSelect}
-                    </Select>
-                    {index > 0 ?<button
-                    onClick={(e) => deleteFunnelStep(e, funnelStep.id)}
-                    style={{
-                        background: "transparent",
-                        border: "none",
-                        cursor: "pointer",
-                        margin: "0px 0px 0px 10px",
-                        color: "#cccccc",
-                    }}
-                    >
-                    <Trash2 size="18px" color="#1890ff" />
-                    </button>: null}
-
-                    <Dropdown
-                        key={funnelStep.id}
-                        overlay={() => whereFilterMenu(funnelStep.id)}
-                        visible={funnelStep.id === whereFilterDropdownVisible}
-                        placement="bottomLeft"
-                        arrow
-                        >
-                        <button
-                            onClick={() => {
-                                setWhereFilterDropdownVisible(funnelStep.id);
-                            }}
-                            style={{
-                                background: "transparent",
-                                border: "none",
-                                cursor: "pointer",
-                                margin: "0px 0px 0px 10px",
-                                color: "#cccccc",
-                            }}
-                        >
-                            <Filter size="18px" color="#1890ff" />
-                        </button>
-                    </Dropdown>
-                </div>
-                <div style={{display: 'flex', flexWrap: 'wrap'}}>
-                    {
-                        displayTags(funnelStep.id) ? displayTags(funnelStep.id).map((filter, _) => (
-                            <Tag key={filter.id} style={{marginBottom: 10}}>{filter?.Property} {filter?.Operator} {filter?.Value}</Tag>
-                        )) : null
-                    }
-                </div>
+           <div key={funnelStep.id}>
+             <div
+               key={funnelStep.id}
+               style={{
+                 display: "flex",
+                 alignItems: "center",
+                 marginBottom: "15px",
+               }}
+             >
+               <Select
+                 showSearch
+                 bordered={true}
+                 placeholder="Select Event ..."
+                 dropdownStyle={{ minWidth: "200px" }}
+                 style={{ width: "80%", margin: "0px 0px 0px 0px" }}
+                 onChange={(e) => {
+                   handleEventNameSelect(e, funnelStep.id);
+                 }}
+                 filterOption={(input, option) =>
+                   option.props.children
+                     .toLowerCase()
+                     .indexOf(input.toLowerCase()) >= 0
+                 }
+               >
+                 {availableEventNameForSelect}
+               </Select>
+               {index > 0 ? (
+                 <button
+                   onClick={(e) => deleteFunnelStep(e, funnelStep.id)}
+                   style={{
+                     background: "transparent",
+                     border: "none",
+                     cursor: "pointer",
+                     margin: "0px 0px 0px 10px",
+                     color: "#cccccc",
+                   }}
+                 >
+                   <Trash2 size="18px" color="#1890ff" />
+                 </button>
+               ) : null}
+ 
+               <Dropdown
+                 key={funnelStep.id}
+                 overlay={() => whereFilterMenu(funnelStep.id)}
+                 visible={funnelStep.id === whereFilterDropdownVisible}
+                 placement="bottomLeft"
+                 arrow
+               >
+                 <button
+                   onClick={() => {
+                     setWhereFilterDropdownVisible(funnelStep.id);
+                   }}
+                   style={{
+                     background: "transparent",
+                     border: "none",
+                     cursor: "pointer",
+                     margin: "0px 0px 0px 10px",
+                     color: "#cccccc",
+                   }}
+                 >
+                   <Filter size="18px" color="#1890ff" />
+                 </button>
+               </Dropdown>
              </div>
-           
+             <div style={{ display: "flex", flexWrap: "wrap" }}>
+               {displayTags(funnelStep.id)
+                 ? displayTags(funnelStep.id).map((filter, _) => (
+                     <Tag key={filter.id} style={{ marginBottom: 10 }}>
+                       {filter?.Property} {filter?.Operator} {filter?.Value}
+                     </Tag>
+                   ))
+                 : null}
+             </div>
+           </div>
          ))}
  
          <Button
@@ -615,14 +629,14 @@
                <Option value="Today">Today</Option>
                <Option value="Yesterday">Yesterday</Option>
                {/* <Option value="Last 24 hours">Last 24 hours</Option>
-               <Option value="Last 48 hours">Last 48 hours</Option>
-               <Option value="Last 7 days">Last 7 days</Option>
-               <Option value="Last 14 days">Last 14 days</Option> */}
+                <Option value="Last 48 hours">Last 48 hours</Option>
+                <Option value="Last 7 days">Last 7 days</Option>
+                <Option value="Last 14 days">Last 14 days</Option> */}
                <Option value="Last 30 days">Last 30 days</Option>
                <Option value="Last 90 days">Last 90 days</Option>
                {/* <Option value="This Month">This Month</Option>
-               <Option value="Previous Month">Previous Month</Option>
-               <Option value="Year to date">Year to date</Option> */}
+                <Option value="Previous Month">Previous Month</Option>
+                <Option value="Year to date">Year to date</Option> */}
                <Option value="All time">All time</Option>
                <Option value="Date range">Date range</Option>
              </Select>
@@ -630,9 +644,9 @@
          ]}
        >
          {/**   
-         <AreaGraph data={graphData} />
-         <LineGraph data={graphData} timescale={selectedTimescale} />
-         */}
+          <AreaGraph data={graphData} />
+          <LineGraph data={graphData} timescale={selectedTimescale} />
+          */}
  
          <div className="funnel-container">
            {loading ? (
@@ -646,3 +660,13 @@
      </div>
    );
  }
+ 
+ const mapState = (state) => ({
+   writeKeyModel: state.writeKeyModel,
+ });
+ 
+ const mapDispatch = (dispatch) => ({
+   setWriteKey: () => dispatch.writeKeyModel.setWriteKey()
+ });
+ 
+ export default connect(mapState, mapDispatch)(Funnel);

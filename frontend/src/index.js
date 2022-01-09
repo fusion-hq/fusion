@@ -9,6 +9,8 @@ import { AccessTokenContextProvider } from "./Context/AccessTokenContext";
 import { WriteKeyContextProvider } from "./Context/WriteKeyContext";
 import { SetupWizardContextProvider } from "./Context/SetupWizardContext";
 import { SearchQueryContextProvider } from "./Context/SearchQueryContext";
+import { Provider } from "react-redux";
+import store from "./store";
 
 import "./index.css";
 import { ThemeSwitcherProvider } from "react-css-theme-switcher";
@@ -22,6 +24,24 @@ import "./Asset/font/TrelloFonts/Charlie_Text-Black.woff";
 import "./Asset/font/TrelloFonts/Charlie_Display-Semibold.woff";
 import "./Asset/font/TrelloFonts/Charlie_Display-Black.woff";
 
+//import react query
+import { QueryClient, QueryClientProvider } from "react-query";
+import { ReactQueryDevtools } from 'react-query/devtools'
+
+const twentyFourHoursInMs = 1000 * 60 * 60 * 24;
+const queryClient = new QueryClient( {
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      refetchOnmount: true,
+      refetchOnReconnect: true,
+      retry: true,
+      staleTime: twentyFourHoursInMs,
+      cacheTime: 60 * 10000
+    },
+  },
+} );
+
 ReactDOM.render(
   <ThemeSwitcherProvider
     defaultTheme="dark"
@@ -34,7 +54,12 @@ ReactDOM.render(
           <SearchQueryContextProvider>
             <WriteKeyContextProvider>
               <SetupWizardContextProvider>
-                <App />
+                <Provider store={store}>
+                  <QueryClientProvider client={queryClient}>
+                    <App />
+                    <ReactQueryDevtools initialIsOpen={false} />
+                  </QueryClientProvider>
+                </Provider>
               </SetupWizardContextProvider>
             </WriteKeyContextProvider>
           </SearchQueryContextProvider>

@@ -1,26 +1,62 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { Divider, Typography, Input, Table, Space } from "antd";
 
 import { LinkOutlined } from "@ant-design/icons";
 import { Trash2 } from "react-feather";
-import { WriteKeyContext } from "../../Context/WriteKeyContext";
-import { AccessTokenContext } from "../../Context/AccessTokenContext";
 import "./Settings.css"
 
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { monokai } from "react-syntax-highlighter/dist/esm/styles/hljs";
+import { Switch } from 'antd';
+import axios from "axios";
+import { connect } from "react-redux";
 
-export default function Setup() {
+import usePluginStatus from "../../api/hooks/usePluginStatus";
+import { savePlugin } from "../../api/network/savePlugin";
+import useAllowedUrl from "../../api/hooks/useAllowedUrl";
+
+function Setup(props) {
   const { Paragraph } = Typography;
   const { Search } = Input;
 
-  const [accessToken] = useContext(AccessTokenContext);
-  const token = accessToken;
-  const serverUrl = process.env.REACT_APP_SERVER_URL;
-  const [writeKey] = useContext(WriteKeyContext);
-  const [allowedWebsiteList, setAllowedWebsiteList] = useState([]);
+  //authtoken and writekey
+  const [token, ] = useState(props?.writeKeyModel?.token);
+  const [writeKey, ] = useState(props?.writeKeyModel?.user);
 
   var apiServer = process.env.REACT_APP_EVENT_COLLECTOR;
+
+  const serverUrl = process.env.REACT_APP_SERVER_URL;
+  const [, setAllowedWebsiteList] = useState([]);
+  const [dbCreated, setDbCreated] = useState(false);
+
+  const [isSessionChecked, setSessionChecked] = useState(false);
+
+  const saveFusionUserId = () => {
+    try {
+        axios.get(`${serverUrl}/save-userId?userId=${writeKey}`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            }
+        }).then((res) => {
+          setDbCreated(true)
+        })
+      } catch (error) {
+        console.log(error.message);
+      }
+  };
+
+  useEffect(() => {
+    if(writeKey && token) {
+        saveFusionUserId();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [writeKey, token])
+
+  //plugin status
+  const statusD = usePluginStatus(writeKey, dbCreated);
+
+  //allowed Urls
+  const allowedUrl = useAllowedUrl(writeKey, dbCreated);
 
   var trackingCode = `<!-- Fusion Analytics Tracking Script-->
   <script src="https://app.fusionhq.co/session-lib.js"></script>
@@ -88,24 +124,6 @@ export default function Setup() {
   };
 
   // Create dashboard api call
-  const getAllowedUrl = async (writeKey) => {
-    try {
-      const response = await fetch(
-        `${serverUrl}/allowed-websites?writeKey=${writeKey}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      const allowedWebsites = await response.json();
-      setAllowedWebsiteList(allowedWebsites);
-    } catch (error) {
-      console.log(error.message);
-    }
-  };
-
-  // Create dashboard api call
   const deleteAllowedUrl = async (writeKey, websiteUrl) => {
     try {
       const response = await fetch(
@@ -134,9 +152,18 @@ export default function Setup() {
   };
 
   useEffect(() => {
-    getAllowedUrl(writeKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if(writeKey && token && statusD?.data) {
+      setSessionChecked(statusD?.data?.is_active)
+    }
+    if(token) {
+      sessionStorage.setItem('JWT', token);
+    }
+  },[writeKey, token, statusD]);
+
+  function changeSessionStatus(checked) {
+    savePlugin(writeKey, checked);
+    setSessionChecked(!isSessionChecked);
+  }
 
   return (
     <div className="Setup">
@@ -205,12 +232,30 @@ export default function Setup() {
         />
         <Table
           style={{ width: "100%", margin: "0 0 20px 0" }}
-          dataSource={allowedWebsiteList}
+          dataSource={allowedUrl?.data}
           columns={TableColumns}
           size="small"
-          pagination={{ defaultPageSize: 4 }}
+          pagination={false}
         />
+      </div>
+
+      <Divider />
+
+      <h1>Plugins</h1>
+      Play with different Plugins offered, Switch on/off directly plugins from here.
+      <div style={{display: 'flex', gap: 20, marginTop: 20, alignItems: 'center'}}>
+        <h3 style={{marginTop: 5}}>Session Recording</h3>
+        <Switch checked={isSessionChecked} onChange={changeSessionStatus} />
       </div>
     </div>
   );
 }
+const mapState = (state) => ({
+  writeKeyModel: state.writeKeyModel,
+});
+
+const mapDispatch = (dispatch) => ({
+  setWriteKey: () => dispatch.writeKeyModel.setWriteKey()
+});
+
+export default connect(mapState, mapDispatch)(Setup);

@@ -3,7 +3,7 @@
  * Show basic welcome message and some UI
  */
 
-import React, {useState, useContext, useEffect} from "react";
+import React, {useState, useEffect} from "react";
 import Sidenav from "../../Components/Sidenav/Sidenav.js";
 import { Input, Button, notification, Select } from 'antd';
 import { UserOutlined, InboxOutlined, LoadingOutlined} from '@ant-design/icons';
@@ -11,12 +11,11 @@ import './Email.css'
 import axios from "axios";
 import ReactQuill, {Quill} from 'react-quill'; // ES6
 import 'react-quill/dist/quill.snow.css'; // ES6
-import { WriteKeyContext } from "../../Context/WriteKeyContext";
-import { AccessTokenContext } from "../../Context/AccessTokenContext";
 import EmailCard from "../../Components/EmailCard.js";
+import { connect } from "react-redux";
 
 
- function Email() {
+function Email(props) {
 
     var Block = Quill.import('blots/block');
     Block.tagName = 'div';
@@ -27,9 +26,8 @@ import EmailCard from "../../Components/EmailCard.js";
 
     const [cohorts, setCohorts] = useState([]);
     const [sentEmails, setSentEmails] = useState([]);
-    const [writeKey, ] = useContext(WriteKeyContext);
-    const [accessToken, ] = useContext(AccessTokenContext);
-    const token = accessToken;
+    const [token, ] = useState(props?.writeKeyModel?.token);
+    const [writeKey, ] = useState(props?.writeKeyModel?.user);
 
     const getCohorts = async (
       writeKey
@@ -245,5 +243,13 @@ import EmailCard from "../../Components/EmailCard.js";
         </div>
    );
  }
- export default Email;
+const mapState = (state) => ({
+  writeKeyModel: state.writeKeyModel,
+});
+
+const mapDispatch = (dispatch) => ({
+  setWriteKey: () => dispatch.writeKeyModel.setWriteKey()
+});
+
+export default connect(mapState, mapDispatch)(Email);
  

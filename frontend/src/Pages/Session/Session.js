@@ -3,7 +3,7 @@
  * Show basic welcome message and some UI
  */
 
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import "./Session.css";
 import { useHistory } from "react-router-dom";
 import Sidenav from "../../Components/Sidenav/Sidenav.js";
@@ -17,19 +17,21 @@ import {
   message,
 } from "antd";
 import { ReloadOutlined, LeftOutlined, RightOutlined } from "@ant-design/icons";
-import { AccessTokenContext } from "../../Context/AccessTokenContext";
-import { WriteKeyContext } from "../../Context/WriteKeyContext";
 import Tags from "../../Components/TrendsEditor/Tags";
 import moment from "moment";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { monokai } from "react-syntax-highlighter/dist/esm/styles/hljs";
+import { connect } from "react-redux";
+import useSessions from "../../api/hooks/useSessions";
+import { useQueryClient } from "react-query";
 
-function Session() {
+function Session(props) {
   const history = useHistory();
+  const queryClient = useQueryClient();
 
-  const [accessToken] = useContext(AccessTokenContext);
-  const [writeKey] = useContext(WriteKeyContext);
-  const token = accessToken;
+  const [token, ] = useState(props?.writeKeyModel?.token);
+  const [writeKey, ] = useState(props?.writeKeyModel?.user);
+
   const serverUrl = process.env.REACT_APP_SERVER_URL;
   const [userList, setUserList] = useState([]);
   const [whereFilterDropdownVisible, setWhereFilterDropdownVisible] =
@@ -37,11 +39,8 @@ function Session() {
   const [DateRangeFilterDropdownVisible, setDateRangeFilterDropdownVisible] =
     useState(false);
 
-  const [loading, setLoading] = useState(true);
-
   //pagination
   const [page, setPage] = useState(1);
-  const limit = 10;
 
   // used by WHERE property popup state auto visibility
   const [filterTags, setFilterTags] = useState([]);
@@ -276,45 +275,30 @@ function Session() {
     {
       title: "Recorded at",
       dataIndex: "timestamp",
+      key: "timestamp",
+      render: timestamp => <div>{moment(timestamp).fromNow()}</div> 
     }
   ];
 
-  // Fetch all Session details from DB
-  const getAllSession = async (
-    filterTags,
-    selectedDateTimeRange,
-    startDate,
-    endDate,
-    writeKey,
-    page,
-    limit
-  ) => {
+  const sessionData = useSessions(JSON.stringify(filterTags), selectedDateTimeRange, startDate, endDate, writeKey, page);
+  
+  // Manipulate DB from sessionData
+  const getAllSession = () => {
     try {
-      setLoading(true);
-      let filterString = JSON.stringify(filterTags);
-      const response = await fetch(
-        `${serverUrl}/allRecordingData?filters=${filterString}&dateTime=${selectedDateTimeRange}&startDate=${startDate}&endDate=${endDate}&writeKey=${writeKey}&page=${page}&limit=${limit}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      const users = await response.json();
-      //console.log(users);
+      const users = sessionData.data?.data;
 
-      users.map((user) => {
-        user.timestamp = moment(user.timestamp).fromNow();
-        if (user.user_id) {
-          user.email = `Visitor${user.user_id.substr(user.user_id.length - 5)}`;
-        } else {
-          user.email = "";
-        }
-        return 0;
-      });
-
-      setUserList(users);
-      setLoading(false);
+      if(users) {
+        users.map((user) => {
+          if (user.user_id) {
+            user.email = `Visitor${user.user_id.substr(user.user_id.length - 5)}`;
+          } else {
+            user.email = "";
+          }
+          return 0;
+        });
+  
+        setUserList(users);
+      }
     } catch (error) {
       console.log(error.message);
     }
@@ -396,30 +380,11 @@ function Session() {
   }, [selectedFilterProperty]);
 
   useEffect(() => {
-    getAllSession(
-      filterTags,
-      selectedDateTimeRange,
-      startDate,
-      endDate,
-      writeKey,
-      page,
-      limit
-    );
-
+    getAllSession();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    filterTags,
-    selectedDateTimeRange,
-    startDate,
-    endDate,
-    writeKey,
-    page,
-    limit,
+    sessionData
   ]);
-
-  function onChange(pagination, filters, sorter, extra) {
-    //console.log("params", pagination, filters, sorter, extra);
-  }
 
   return (
     <div className="Session">
@@ -494,15 +459,9 @@ function Session() {
                   icon={<ReloadOutlined />}
                   style={{ margin: "5px 0px 10px 15px" }}
                   onClick={() => {
-                    getAllSession(
-                      filterTags,
-                      selectedDateTimeRange,
-                      startDate,
-                      endDate,
-                      writeKey,
-                      page,
-                      limit
-                    );
+                    setPage(1);
+                    queryClient.invalidateQueries('sessions');
+                    getAllSession();
                   }}
                 >
                   Refresh
@@ -543,8 +502,7 @@ function Session() {
               className="user-table"
               columns={columns}
               dataSource={userList}
-              loading={loading}
-              onChange={onChange}
+              loading={sessionData.isloading}
               pagination={false}
               rowKey={(record) => {
                 return record.sessionid;
@@ -573,4 +531,12 @@ function Session() {
     </div>
   );
 }
-export default Session;
+const mapState = (state) => ({
+  writeKeyModel: state.writeKeyModel,
+});
+
+const mapDispatch = (dispatch) => ({
+  setWriteKey: () => dispatch.writeKeyModel.setWriteKey()
+});
+
+export default connect(mapState, mapDispatch)(Session);

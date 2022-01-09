@@ -3,7 +3,7 @@
  * Show basic welcome message and some UI
  */
 
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import "./User.css";
 import Sidenav from "../../Components/Sidenav/Sidenav.js";
 import {
@@ -16,20 +16,18 @@ import {
   Dropdown,
   DatePicker
 } from "antd";
-import { AccessTokenContext } from "../../Context/AccessTokenContext";
-import { WriteKeyContext } from "../../Context/WriteKeyContext";
 import { useParams } from "react-router-dom";
 import moment from "moment";
 import Tags from "../../Components/TrendsEditor/Tags";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { monokai } from "react-syntax-highlighter/dist/esm/styles/hljs";
+import { connect } from "react-redux";
 
-function User() {
+function User(props) {
   const { uuid, userId, deviceId } = useParams();
-  const [accessToken, ] = useContext(AccessTokenContext);
-  const [writeKey, ] = useContext(WriteKeyContext);
+  const [token, ] = useState(props?.writeKeyModel?.token);
+  const [writeKey, ] = useState(props?.writeKeyModel?.user) 
   const serverUrl = process.env.REACT_APP_SERVER_URL;
-  const token = accessToken;
 
   const [userProfile, setUserProfile] = useState({});
   const [eventList, setEventList] = useState();
@@ -317,7 +315,6 @@ function User() {
   // Fetch users profile data
   const getUserProfile = async (uuid, userId, deviceId, writeKey) => {
     try {
-      const token = accessToken;
 
       if (writeKey.length > 0) {
         const response = await fetch(
@@ -365,7 +362,6 @@ function User() {
     try {
       setLoading(true);
 
-      const token = accessToken;
       let filterString = JSON.stringify(filterTags);
       let userIdListString = JSON.stringify(userIds);
 
@@ -707,4 +703,13 @@ function User() {
     </div>
   );
 }
-export default User;
+
+const mapState = (state) => ({
+  writeKeyModel: state.writeKeyModel,
+});
+
+const mapDispatch = (dispatch) => ({
+  setWriteKey: () => dispatch.writeKeyModel.setWriteKey()
+});
+
+export default connect(mapState, mapDispatch)(User);
