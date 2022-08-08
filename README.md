@@ -2,7 +2,12 @@
   <img src="https://raw.githubusercontent.com/fusion-hq/fusion/main/doc/fusion-logo.png" alt="fusion-logo" width="450" />
 
   <p align="center">Full-Stack user behaviour analytics and engagement platform.</p>
+
 </p>
+
+
+---
+  # This project is no longer maintained..
 
 ---
 
